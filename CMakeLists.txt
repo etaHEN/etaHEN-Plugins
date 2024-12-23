@@ -12,8 +12,6 @@ include_directories(SYSTEM "${D_PS5SDK}")
 include_directories(SYSTEM "${D_PS5SDK}/include")
 
 add_subdirectory(libhijacker)
-add_subdirectory(libNidResolver)
-add_subdirectory(libelfloader)
 
 add_subdirectory(Plugin_samples/utility_daemon)
 add_subdirectory(Plugin_samples/Illusion_cheats)
