@@ -43,10 +43,6 @@ jobs:
     - name: Checkout Payload
       uses: actions/checkout@v3
 
-    - name: Build SDK
-      working-directory: ${{ env.PS5SDK }}
-      run: bash ./build.sh
-
     - name: Build etaHEN-SDK-Binaries
       run: bash ./build.sh
 
