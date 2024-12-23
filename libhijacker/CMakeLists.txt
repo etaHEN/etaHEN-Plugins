@@ -33,8 +33,8 @@ set(D_CWD "${PROJECT_SOURCE_DIR}")
 
 
 # Headers
-include_directories	(SYSTEM "${D_PS5SDK}")
-include_directories	(SYSTEM "${D_PS5SDK}/include")
+include_directories	(SYSTEM "${PS5_PAYLOAD_SDK}")
+include_directories	(SYSTEM "${PS5_PAYLOAD_SDK}/include")
 
 set(D_SRC ${D_CWD}/source)
 
