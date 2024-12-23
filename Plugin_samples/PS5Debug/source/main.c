@@ -12,7 +12,7 @@
 int main() {
     pid_t pid = getpid();
     jailbreak_process(pid, true);
-    printf_notification("PS5Debug v0.0.1 Loaded\nBy Dizz");
+    printf_notification("PS5Debug v0.0.1 Loaded\nBy Dizz");//DIZZ
     ScePthread broadcastThread;
     scePthreadCreate(&broadcastThread, 0, (void*)broadcast_thread, 0, "broadcast_thread");
     start_server();
