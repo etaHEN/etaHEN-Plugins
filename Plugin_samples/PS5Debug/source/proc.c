@@ -8,7 +8,7 @@
 #include "proc.h"
 #include "tracer.h"
 #include "elfldr.h"
-void free(void* ptr);
+void free(void* ptr);//
 int proc_base_handle(int fd, struct cmd_packet *packet) {
     struct cmd_proc_maps_packet* basePacket = (struct cmd_proc_maps_packet*)packet->data;
     uintptr_t proc = get_proc(basePacket->pid);
