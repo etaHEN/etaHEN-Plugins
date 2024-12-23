@@ -19,7 +19,7 @@ static uintptr_t __attribute__((naked, noinline)) getTextStart() {
 
 static uintptr_t __attribute__((naked, noinline)) getTextEnd() {
 	asm volatile(
-		"lea __text_stop(%rip), %rax\n"
+		"lea __text_end(%rip), %rax\n"
 		"ret\n"
 	);
 }

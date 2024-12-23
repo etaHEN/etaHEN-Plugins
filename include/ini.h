@@ -14,140 +14,131 @@ https://github.com/benhoyt/inih
 #ifndef INI_H
 #define INI_H
 
+#include <stdio.h>
+#include <unistd.h>
+
 /* Make this header file easier to include in C++ code */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define MAX_LINE 256
+#define MAX_PAIRS 100
+
+typedef struct {
+    char key[MAX_LINE];
+    char value[MAX_LINE];
+} KeyValue;
+
+typedef struct {
+    KeyValue pairs[MAX_PAIRS];
+    int count;
+} IniParser;
+
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <fcntl.h>
 
-/* Nonzero if ini_handler callback should accept lineno parameter. */
-#ifndef INI_HANDLER_LINENO
-#define INI_HANDLER_LINENO 1
-#endif
+static void trim(char* str) {
+    char* end = 0;
+    // Trim leading space
+    while (isspace((unsigned char)*str)) str++;
 
-/* Typedef for prototype of handler function. */
-#if INI_HANDLER_LINENO
-typedef int (*ini_handler)(void* user, const char* section,
-                           const char* name, const char* value,
-                           int lineno);
-#else
-typedef int (*ini_handler)(void* user, const char* section,
-                           const char* name, const char* value);
-#endif
+    // Trim trailing space
+    if (*str == 0) return;
 
-/* Typedef for prototype of fgets-style reader function. */
-typedef char* (*ini_reader)(char* str, int num, void* stream);
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
 
-/* Parse given INI-style file. May have [section]s, name=value pairs
-   (whitespace stripped), and comments starting with ';' (semicolon). Section
-   is "" if name=value pair parsed before any section heading. name:value
-   pairs are also supported as a concession to Python's configparser.
+    // Write new null terminator
+    *(end + 1) = 0;
+}
+static char* my_strchr(const char* str, int c) {
+    while (*str != '\0') {
+        if (*str == (char)c) {
+            return (char*)str;
+        }
+        str++;
+    }
+    return NULL;
+}
+static int ini_parser_load(IniParser* parser, const char* filename) {
+    int fd = open(filename, O_RDONLY, 0);
+    if (fd < 0) {
+        return 0;
+    }
+    parser->count = 0;
 
-   For each name=value pair parsed, call handler function with given user
-   pointer as well as section, name, and value (data only valid for duration
-   of handler call). Handler should return nonzero on success, zero on error.
+    char buffer[MAX_LINE];
+    ssize_t bytesRead;
+    int bufferIndex = 0;
+    char section[MAX_LINE] = "";
 
-   Returns 0 on success, line number of first error on parse error (doesn't
-   stop on first error), -1 on file open error, or -2 on memory allocation
-   error (only when INI_USE_STACK is zero).
-*/
-int ini_parse(const char* filename, ini_handler handler, void* user);
+    while ((bytesRead = read(fd, buffer + bufferIndex, sizeof(buffer) - bufferIndex - 1)) > 0) {
+        buffer[bytesRead + bufferIndex] = '\0';
+        bufferIndex += bytesRead;
+        char* line = buffer;
+        char* lineEnd;
 
-/* Same as ini_parse(), but takes a FILE* instead of filename. This doesn't
-   close the file when it's finished -- the caller must do that. */
-int ini_parse_file(FILE* file, ini_handler handler, void* user);
+        //shellui_log("Buffer: %s", buffer);
 
-/* Same as ini_parse(), but takes an ini_reader function pointer instead of
-   filename. Used for implementing custom or string-based I/O (see also
-   ini_parse_string). */
-int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
-                     void* user);
+        while ((lineEnd = my_strchr(line, '\n')) != NULL) {
+            *lineEnd = '\0';
+            char trimmedLine[MAX_LINE];
+            strncpy(trimmedLine, line, MAX_LINE);
+            trim(trimmedLine);
 
-/* Same as ini_parse(), but takes a zero-terminated string with the INI data
-instead of a file. Useful for parsing INI data from a network socket or
-already in memory. */
-int ini_parse_string(const char* string, ini_handler handler, void* user);
+            if (trimmedLine[0] == ';' || trimmedLine[0] == '#' || trimmedLine[0] == '\0') {
+                // Skip comments and empty lines
+            }
+            else if (trimmedLine[0] == '[' && trimmedLine[strlen(trimmedLine) - 1] == ']') {
+                // Section header
+                strncpy(section, trimmedLine + 1, strlen(trimmedLine) - 2);
+                section[strlen(trimmedLine) - 2] = '\0';
+                trim(section);
+            }
+            else {
+                // Key-value pair
+                char* delimiter = my_strchr(trimmedLine, '=');
+                if (delimiter) {
+                    *delimiter = '\0';
+                    char key[MAX_LINE];
+                    sprintf(key, "%s.%s", section, trimmedLine);
+                    trim(key);
+                    char* value = delimiter + 1;
+                    trim(value);
 
-/* Nonzero to allow multi-line value parsing, in the style of Python's
-   configparser. If allowed, ini_parse() will call the handler with the same
-   name for each subsequent line parsed. */
-#ifndef INI_ALLOW_MULTILINE
-#define INI_ALLOW_MULTILINE 1
-#endif
+                    if (parser->count < MAX_PAIRS) {
+                        strncpy(parser->pairs[parser->count].key, key, MAX_LINE);
+                        strncpy(parser->pairs[parser->count].value, value, MAX_LINE);
+                        parser->count++;
+                    }
+                }
+            }
 
-/* Nonzero to allow a UTF-8 BOM sequence (0xEF 0xBB 0xBF) at the start of
-   the file. See https://github.com/benhoyt/inih/issues/21 */
-#ifndef INI_ALLOW_BOM
-#define INI_ALLOW_BOM 1
-#endif
+            line = lineEnd + 1;
+        }
 
-/* Chars that begin a start-of-line comment. Per Python configparser, allow
-   both ; and # comments at the start of a line by default. */
-#ifndef INI_START_COMMENT_PREFIXES
-#define INI_START_COMMENT_PREFIXES ";#"
-#endif
+        bufferIndex = strlen(line);
+        memmove(buffer, line, bufferIndex);
+    }
 
-/* Nonzero to allow inline comments (with valid inline comment characters
-   specified by INI_INLINE_COMMENT_PREFIXES). Set to 0 to turn off and match
-   Python 3.2+ configparser behaviour. */
-#ifndef INI_ALLOW_INLINE_COMMENTS
-#define INI_ALLOW_INLINE_COMMENTS 1
-#endif
-#ifndef INI_INLINE_COMMENT_PREFIXES
-#define INI_INLINE_COMMENT_PREFIXES ";"
-#endif
+    close(fd);
+    return 1;
+}
 
-/* Nonzero to use stack for line buffer, zero to use heap (malloc/free). */
-#ifndef INI_USE_STACK
-#define INI_USE_STACK 1
-#endif
 
-/* Maximum line length for any line in INI file (stack or heap). Note that
-   this must be 3 more than the longest line (due to '\r', '\n', and '\0'). */
-#ifndef INI_MAX_LINE
-#define INI_MAX_LINE 200
-#endif
-
-/* Nonzero to allow heap line buffer to grow via realloc(), zero for a
-   fixed-size buffer of INI_MAX_LINE bytes. Only applies if INI_USE_STACK is
-   zero. */
-#ifndef INI_ALLOW_REALLOC
-#define INI_ALLOW_REALLOC 0
-#endif
-
-/* Initial size in bytes for heap line buffer. Only applies if INI_USE_STACK
-   is zero. */
-#ifndef INI_INITIAL_ALLOC
-#define INI_INITIAL_ALLOC 200
-#endif
-
-/* Stop parsing on first error (default is to keep parsing). */
-#ifndef INI_STOP_ON_FIRST_ERROR
-#define INI_STOP_ON_FIRST_ERROR 0
-#endif
-
-/* Nonzero to call the handler at the start of each new section (with
-   name and value NULL). Default is to only call the handler on
-   each name=value pair. */
-#ifndef INI_CALL_HANDLER_ON_NEW_SECTION
-#define INI_CALL_HANDLER_ON_NEW_SECTION 0
-#endif
-
-/* Nonzero to allow a name without a value (no '=' or ':' on the line) and
-   call the handler with value NULL in this case. Default is to treat
-   no-value lines as an error. */
-#ifndef INI_ALLOW_NO_VALUE
-#define INI_ALLOW_NO_VALUE 0
-#endif
-
-/* Nonzero to use custom ini_malloc, ini_free, and ini_realloc memory
-   allocation functions (INI_USE_STACK must also be 0). These functions must
-   have the same signatures as malloc/free/realloc and behave in a similar
-   way. ini_realloc is only needed if INI_ALLOW_REALLOC is set. */
-#ifndef INI_CUSTOM_ALLOCATOR
-#define INI_CUSTOM_ALLOCATOR 0
-#endif
+static const char* ini_parser_get(IniParser* parser, const char* key, const char* default_value) {
+    for (int i = 0; i < parser->count; i++) {
+        if (strcmp(parser->pairs[i].key, key) == 0) {
+            return parser->pairs[i].value;
+        }
+    }
+    return default_value;
+}
 
 
 #ifdef __cplusplus

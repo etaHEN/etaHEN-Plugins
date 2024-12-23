@@ -11,8 +11,6 @@
 #include "utils.h"
 #include "process_utils.h"
 
-void free(void* ptr);
-void* malloc(size_t size);
 #define SHARED_LIB_IMAGEBASE_OFFSET 0x30
 #define SHARED_LIB_METADATA_OFFSET 0x148
 #define LIB_HANDLE_OFFSET 0x28
@@ -44,29 +42,29 @@ typedef struct {
 void get_kernel_string(uintptr_t addr, char* string) {
 	char buf[1];
 	size_t offset = 1;
-	kernel_copyout_ret(addr, &buf, sizeof(buf));
+	kernel_copyout(addr, &buf, sizeof(buf));
 	while (buf[0] != 0x00) {
-		kernel_copyout_ret(addr + offset, &buf, sizeof(buf));
+		kernel_copyout(addr + offset, &buf, sizeof(buf));
 		offset++;
 	}
-	kernel_copyout_ret(addr, string, offset);
+	kernel_copyout(addr, string, offset);
 }
 
 uintptr_t shared_lib_get_imagebase(uintptr_t lib) {
 	uintptr_t imagebase = 0;
-	kernel_copyout_ret(lib + SHARED_LIB_IMAGEBASE_OFFSET, &imagebase, sizeof(imagebase));
+	kernel_copyout(lib + SHARED_LIB_IMAGEBASE_OFFSET, &imagebase, sizeof(imagebase));
 	return imagebase;
 }
 
 uintptr_t shared_object_get_eboot(uintptr_t obj) {
 	uintptr_t eboot = 0;
-	kernel_copyout_ret(obj, &eboot, sizeof(eboot));
+	kernel_copyout(obj, &eboot, sizeof(eboot));
 	return eboot;
 }
 
 uintptr_t proc_get_shared_object(uintptr_t proc) {
 	uintptr_t obj = 0;
-	kernel_copyout_ret(proc + PROC_SHARED_OBJECT_OFFSET, &obj, sizeof(obj));
+	kernel_copyout(proc + PROC_SHARED_OBJECT_OFFSET, &obj, sizeof(obj));
 	return obj;
 }
 
@@ -80,19 +78,19 @@ uintptr_t proc_get_eboot(uintptr_t proc) {
 
 uintptr_t proc_get_fd(uintptr_t proc) {
 	uintptr_t fd = 0;
-	kernel_copyout_ret(proc + PROC_FD_OFFSET, &fd, sizeof(fd));
+	kernel_copyout(proc + PROC_FD_OFFSET, &fd, sizeof(fd));
 	return fd;
 }
 
 uintptr_t proc_get_next(uintptr_t proc) {
 	uintptr_t next = 0;
-	kernel_copyout_ret(proc, &next, sizeof(next));
+	kernel_copyout(proc, &next, sizeof(next));
 	return next;
 }
 
 int proc_get_pid(uintptr_t proc) {
 	int pid = 0;
-	kernel_copyout_ret(proc + KERNEL_OFFSET_PROC_P_PID, &pid, sizeof(pid));
+	kernel_copyout(proc + KERNEL_OFFSET_PROC_P_PID, &pid, sizeof(pid));
 	return pid;
 }
 
@@ -106,7 +104,7 @@ uintptr_t get_current_proc(void) {
 }
 
 void proc_get_name(uintptr_t proc, char name[PROC_SELFINFO_NAME_SIZE]) {
-	kernel_copyout_ret(proc + PROC_SELFINFO_NAME_OFFSET, name, PROC_SELFINFO_NAME_SIZE);
+	kernel_copyout(proc + PROC_SELFINFO_NAME_OFFSET, name, PROC_SELFINFO_NAME_SIZE);
 }
 
 void proc_get_path(uintptr_t proc, char* buf) {
@@ -123,10 +121,10 @@ void proc_get_title_id(uintptr_t proc, char* buf) {
 
 uintptr_t shared_object_get_lib(uintptr_t obj, int handle) {
 	uintptr_t lib = 0;
-	kernel_copyout_ret(obj, &lib, sizeof(lib));
+	kernel_copyout(obj, &lib, sizeof(lib));
 	while (lib != 0) {
 		int current_handle = -1;
-		kernel_copyout_ret(lib + LIB_HANDLE_OFFSET, &current_handle, sizeof(current_handle));
+		kernel_copyout(lib + LIB_HANDLE_OFFSET, &current_handle, sizeof(current_handle));
 		if (current_handle == -1) {
 			// read failed
 			return -1;
@@ -134,7 +132,7 @@ uintptr_t shared_object_get_lib(uintptr_t obj, int handle) {
 		if (current_handle == handle) {
 			return lib;
 		}
-		kernel_copyout_ret(lib, &lib, sizeof(lib));
+		kernel_copyout(lib, &lib, sizeof(lib));
 	}
 	return 0;
 }
@@ -145,20 +143,20 @@ uintptr_t proc_get_lib(uintptr_t proc, int handle) {
 }
 
 size_t get_symbol_address(const plt_helper_t *restrict helper, uintptr_t imagebase, const char *nid) {
-	Elf64_Sym *symtab = (Elf64_Sym *)malloc(helper->symtab_size);
+	Elf64_Sym *symtab = malloc(helper->symtab_size);
 	if (symtab == NULL) {
 		return 0;
 	}
 
-	kernel_copyout_ret(helper->symtab, symtab, helper->symtab_size);
+	kernel_copyout(helper->symtab, symtab, helper->symtab_size);
 
-	char *strtab = (char*)malloc(helper->strtab_size);
+	char *strtab = malloc(helper->strtab_size);
 	if (strtab == NULL) {
 		free(symtab);
 		return 0;
 	}
 
-	kernel_copyout_ret(helper->strtab, strtab, helper->strtab_size);
+	kernel_copyout(helper->strtab, strtab, helper->strtab_size);
 
 	const size_t num_symbols = helper->symtab_size / sizeof(Elf64_Sym);
 	size_t addr = 0;
@@ -176,7 +174,7 @@ size_t get_symbol_address(const plt_helper_t *restrict helper, uintptr_t imageba
 
 uintptr_t shared_lib_get_metadata(uintptr_t lib) {
 	uintptr_t meta = 0;
-	kernel_copyout_ret(lib + SHARED_LIB_METADATA_OFFSET, &meta, sizeof(meta));
+	kernel_copyout(lib + SHARED_LIB_METADATA_OFFSET, &meta, sizeof(meta));
 	return meta;
 }
 
@@ -190,13 +188,13 @@ uintptr_t shared_lib_get_address(uintptr_t lib, const char *sym_nid) {
 	if (imagebase == 0) {
 		return 0;
 	}
-	kernel_copyout_ret(meta  + METADATA_PLT_HELPER_OFFSET, &helper, sizeof(plt_helper_t));
+	kernel_copyout(meta  + METADATA_PLT_HELPER_OFFSET, &helper, sizeof(plt_helper_t));
 	return get_symbol_address(&helper, imagebase, sym_nid);
 }
 
 uintptr_t get_proc(int target_pid) {
 	uintptr_t proc = 0;
-	kernel_copyout_ret(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
+	kernel_copyout(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
 	while (proc != 0) {
 		int pid = proc_get_pid(proc);
 		if (pid == target_pid) {
@@ -209,66 +207,66 @@ uintptr_t get_proc(int target_pid) {
 
 uintptr_t proc_get_vmspace(uintptr_t proc) {
 	uintptr_t obj = 0;
-	kernel_copyout_ret(proc + PROC_VMSPACE_OFFSET, &obj, sizeof(obj));
+	kernel_copyout(proc + PROC_VMSPACE_OFFSET, &obj, sizeof(obj));
 	return obj;
 }
 
 uintptr_t vmspace_get_root_entry(uintptr_t vmspace) {
 	uintptr_t root = 0;
-	kernel_copyout_ret(vmspace + VMSPACE_ROOT_ENTRY, &root, sizeof(root));
+	kernel_copyout(vmspace + VMSPACE_ROOT_ENTRY, &root, sizeof(root));
 	return root;
 }
 
 uint32_t vmspace_get_num_entries(uintptr_t vmspace) {
 	uint32_t numEntries = 0;
-	kernel_copyout_ret(vmspace + VMSPACE_NUM_ENTRIES, &numEntries, sizeof(numEntries));
+	kernel_copyout(vmspace + VMSPACE_NUM_ENTRIES, &numEntries, sizeof(numEntries));
 	return numEntries;
 }
 
 uintptr_t vmspace_entry_get_next_entry(uintptr_t entry) {
 	uintptr_t nextEntry = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_NEXT_ENTRY, &nextEntry, sizeof(nextEntry));
+	kernel_copyout(entry + VMSPACE_ENTRY_NEXT_ENTRY, &nextEntry, sizeof(nextEntry));
 	return nextEntry;
 }
 
 uintptr_t vmspace_entry_get_start(uintptr_t entry) {
 	uintptr_t start = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_START, &start, sizeof(start));
+	kernel_copyout(entry + VMSPACE_ENTRY_START, &start, sizeof(start));
 	return start;
 }
 
 uintptr_t vmspace_entry_get_end(uintptr_t entry) {
 	uintptr_t end = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_END, &end, sizeof(end));
+	kernel_copyout(entry + VMSPACE_ENTRY_END, &end, sizeof(end));
 	return end;
 }
 
 uintptr_t vmspace_entry_get_offset(uintptr_t entry) {
 	uintptr_t offset = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_OFFSET, &offset, sizeof(offset));
+	kernel_copyout(entry + VMSPACE_ENTRY_OFFSET, &offset, sizeof(offset));
 	return offset;
 }
 
 uint16_t vmspace_entry_get_prot(uintptr_t entry) {
 	uint16_t prot = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_PROT, &prot, sizeof(prot));
+	kernel_copyout(entry + VMSPACE_ENTRY_PROT, &prot, sizeof(prot));
 	return prot;
 }
 
 uint16_t vmspace_entry_get_max_prot(uintptr_t entry) {
 	uint16_t prot = 0;
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_MAX_PROT, &prot, sizeof(prot));
+	kernel_copyout(entry + VMSPACE_ENTRY_MAX_PROT, &prot, sizeof(prot));
 	return prot;
 }
 
 void vmspace_entry_set_prot(uintptr_t entry, int prot) {
 	uint16_t buf = prot;
-	kernel_copyin_ret(&buf, entry + VMSPACE_ENTRY_PROT, sizeof(uint16_t));
-	kernel_copyin_ret(&buf, entry + VMSPACE_ENTRY_MAX_PROT, sizeof(uint16_t));
+	kernel_copyin(&buf, entry + VMSPACE_ENTRY_PROT, sizeof(uint16_t));
+	kernel_copyin(&buf, entry + VMSPACE_ENTRY_MAX_PROT, sizeof(uint16_t));
 }
 
 void vmspace_entry_get_name(uintptr_t entry, char name[PROC_SELFINFO_NAME_SIZE]) {
-	kernel_copyout_ret(entry + VMSPACE_ENTRY_NAME, name, PROC_SELFINFO_NAME_SIZE);
+	kernel_copyout(entry + VMSPACE_ENTRY_NAME, name, PROC_SELFINFO_NAME_SIZE);
 }
 
 int sys_proc_list(struct proc_list_entry *procs, uint64_t *num) {
@@ -276,7 +274,7 @@ int sys_proc_list(struct proc_list_entry *procs, uint64_t *num) {
     if(!procs) {
         // count
 		uintptr_t proc = 0;
-		kernel_copyout_ret(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
+		kernel_copyout(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
 		do {
 			count++;
 			proc = proc_get_next(proc);
@@ -287,7 +285,7 @@ int sys_proc_list(struct proc_list_entry *procs, uint64_t *num) {
         // fill structure
         count = *num;
 		uint64_t proc = 0;
-		kernel_copyout_ret(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
+		kernel_copyout(KERNEL_ADDRESS_ALLPROC, &proc, sizeof(proc));
         for (int i = 0; i < count; i++) {
 			char name[32];
 			proc_get_name(proc, name);
@@ -344,8 +342,8 @@ int sys_proc_protect_by_name(int pid, const char* name, int prot) {
 	uintptr_t currentEntry = vmspace_get_root_entry(vmSpace);
 
 	while (currentEntry != 0) {
-		uint64_t start = vmspace_entry_get_start(currentEntry);
-		uint64_t end = vmspace_entry_get_end(currentEntry);
+		//uint64_t start = vmspace_entry_get_start(currentEntry);
+		//uint64_t end = vmspace_entry_get_end(currentEntry);
 		char entryName[32];
 		vmspace_entry_get_name(currentEntry, entryName);
 		if (strcmp(entryName, name) == 0) {
@@ -360,7 +358,7 @@ int sys_proc_protect_by_name(int pid, const char* name, int prot) {
 
 uintptr_t proc_get_ucred(uintptr_t proc) {
 	uintptr_t ucred = 0;
-	kernel_copyout_ret(proc + PROC_UCRED_OFFSET, &ucred, sizeof(ucred));
+	kernel_copyout(proc + PROC_UCRED_OFFSET, &ucred, sizeof(ucred));
 	return ucred;
 }
 

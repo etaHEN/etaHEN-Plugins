@@ -58,15 +58,7 @@ extern "C" {
 
 #include "../extern/pfd_sfo_tools/sfopatcher/src/sfo.h"
 #include "../extern/tiny-json/tiny-json.h"
-#include "nid_resolver/resolver.h"
-#include <elfldr.h>
-#include <jailbreak.h>
-#include <libs.h>
-#include <module.h>
-#include <offsets.h>
-#include <proc.h>
-#include <rtld.h>
-#include <tracer.h>
+
 int32_t sceKernelPrepareToSuspendProcess(pid_t pid);
 int32_t sceKernelSuspendProcess(pid_t pid);
 int32_t sceKernelPrepareToResumeProcess(pid_t pid);
@@ -231,7 +223,7 @@ const bool isAlive(const pid_t pid) {
   }
   for (const pid_t v : dbg::getAllPids()) {
     if (pid == v) {
-      // _printf("(pid == v): %d\n", pid);
+      // cheat_log("(pid == v): %d\n", pid);
       return true;
     }
   }
@@ -273,12 +265,12 @@ void *GamePatch_InputThread(void *unused) {
   int32_t priority = 256;
   print_ret(sceUserServiceInitialize(&priority));
   print_ret(sceUserServiceGetForegroundUser(&user_id));
-  _printf("priority: 0x%08x\n", priority);
-  _printf("user_id: 0x%08x\n", user_id);
+  cheat_log("priority: 0x%08x\n", priority);
+  cheat_log("user_id: 0x%08x\n", user_id);
   if (user_id > 0) {
     print_ret(scePadInit());
     pad_handle = scePadOpen(user_id, 0, 0, nullptr);
-    _printf("scePadOpen: 0x%08x\n", pad_handle);
+    cheat_log("scePadOpen: 0x%08x\n", pad_handle);
     print_ret(scePadSetProcessPrivilege(1));
   } else {
     printf_notification(
@@ -408,25 +400,25 @@ void *GamePatch_Thread(void *unused) {
   constexpr uint32_t ORBIS_SYSMODULE_INTERNAL_VIDEO_OUT = 0x80000022;
   module_load =
       sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_VIDEO_OUT);
-  _printf("sceSysmoduleLoadModuleInternal: 0x%08x\n", module_load);
+  cheat_log("sceSysmoduleLoadModuleInternal: 0x%08x\n", module_load);
   if (uintptr_t(sceVideoOutOpen) && uintptr_t(sceVideoOutIsOutputSupported) &&
       uintptr_t(sceVideoOutConfigureOutput)) {
     FlipRate_ConfigureOutput_Ptr =
         uintptr_t(sceVideoOutConfigureOutput) - uintptr_t(sceVideoOutOpen);
     FlipRate_isVideoModeSupported_Ptr =
         uintptr_t(sceVideoOutIsOutputSupported) - uintptr_t(sceVideoOutOpen);
-    _printf("sceVideoOutSetFlipRate: 0x%p\n", sceVideoOutOpen);
-    _printf("sceVideoOutConfigureOutput: 0x%p\n", sceVideoOutConfigureOutput);
-    _printf("sceVideoOutIsOutputSupported: 0x%p\n",
+    cheat_log("sceVideoOutSetFlipRate: 0x%p\n", sceVideoOutOpen);
+    cheat_log("sceVideoOutConfigureOutput: 0x%p\n", sceVideoOutConfigureOutput);
+    cheat_log("sceVideoOutIsOutputSupported: 0x%p\n",
             sceVideoOutIsOutputSupported);
-    _printf("FlipRate_ConfigureOutput_Ptr: 0x%lx\n",
+    cheat_log("FlipRate_ConfigureOutput_Ptr: 0x%lx\n",
             FlipRate_ConfigureOutput_Ptr);
-    _printf("FlipRate_isVideoModeSupported_Ptr: 0x%lx\n",
+    cheat_log("FlipRate_isVideoModeSupported_Ptr: 0x%lx\n",
             FlipRate_isVideoModeSupported_Ptr);
   }
   module_load =
       sceSysmoduleUnloadModuleInternal(ORBIS_SYSMODULE_INTERNAL_VIDEO_OUT);
-  _printf("sceSysmoduleUnloadModuleInternal: 0x%08x\n", module_load);
+  cheat_log("sceSysmoduleUnloadModuleInternal: 0x%08x\n", module_load);
   if (FlipRate_ConfigureOutput_Ptr > 0 &&
       FlipRate_isVideoModeSupported_Ptr > 0) {
     is120HzUsable = true;
@@ -434,9 +426,10 @@ void *GamePatch_Thread(void *unused) {
     is120HzUsable = false;
   }
 
-  pid_t target_running_pid = -1;
+
   g_game_patch_thread_running = true;
   pid_t shellcore_pid = 0;
+
 
   int32_t doPatchGames = true;
   {
@@ -475,7 +468,6 @@ void *GamePatch_Thread(void *unused) {
         cheat_log("app is no longer running");
 
       usleep(1000);
-      target_running_pid = -1;
       g_foundApp = false;
       continue;
     }
@@ -547,7 +539,6 @@ for (auto p: dbg::getProcesses()) {
         continue;
       } else if (ret == 0) {
         g_foundApp = true;
-        target_running_pid = app_pid;
       }
       cheat_log("suspending app %s", app_id);
       SuspendApp(app_pid);
@@ -591,7 +582,6 @@ for (auto p: dbg::getProcesses()) {
         continue;
       } else if (ret == 0) {
         g_foundApp = true;
-        target_running_pid = app_pid;
       }
       cheat_log("suspending app %s", app_id);
       SuspendApp(app_pid);

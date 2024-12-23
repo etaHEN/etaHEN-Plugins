@@ -4,7 +4,7 @@
 #include <sys/syscall.h>
 #include "console.h"
 #include "utils.h"
-void free(void* ptr);
+
 int console_reboot_handle(int fd, struct cmd_packet *packet) {
     return syscall(55, 0);
 }

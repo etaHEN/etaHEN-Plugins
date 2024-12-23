@@ -3,7 +3,7 @@
 extern "C" {
 	#include <elf.h>
 	#include <sys/elf64.h>
-	#include <ps5/payload_main.h>
+	#include <ps5/payload.h>
 }
 
 #include "hijacker.hpp"

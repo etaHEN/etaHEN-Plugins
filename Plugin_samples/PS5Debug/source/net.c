@@ -3,10 +3,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "net.h"
-#include <sys/errno.h>
-
-#define	EAGAIN		35		/* Resource temporarily unavailable */
-#define	EWOULDBLOCK	EAGAIN		/* Operation would block */
 
 int net_select(int fd, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout) {
     return syscall(93, fd, readfds, writefds, exceptfds, timeout);
@@ -21,9 +17,9 @@ int net_send_data(int fd, void *data, int length) {
 
     while (left > 0) {
         if (left > NET_MAX_LENGTH) {
-            sent = write(fd, (char*)(data )+ offset, NET_MAX_LENGTH);
+            sent = write(fd, data + offset, NET_MAX_LENGTH);
         } else {
-            sent = write(fd, (char*)(data )+ offset, left);
+            sent = write(fd, data + offset, left);
         }
 
         if (sent <= 0) {
@@ -48,9 +44,9 @@ int net_recv_data(int fd, void *data, int length, int force) {
 
     while (left > 0) {
         if (left > NET_MAX_LENGTH) {
-            recv = read(fd,  (char*)(data) + offset, NET_MAX_LENGTH);
+            recv = read(fd, data + offset, NET_MAX_LENGTH);
         } else {
-            recv = read(fd,  (char*)(data) + offset, left);
+            recv = read(fd, data + offset, left);
         }
 
         if (recv <= 0) {

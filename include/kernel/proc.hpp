@@ -6,11 +6,12 @@
 #include "kthread.hpp"
 #include "../offsets.hpp"
 #include "util.hpp"
+#include <cstdint>
 
 extern "C" {
 	#include <ps5/kernel.h>
 	extern int getpid();
-	extern const uintptr_t kernel_base;
+	extern uint64_t kernel_base;
 }
 
 namespace {
@@ -176,6 +177,11 @@ class KProc : public KernelObject<KProc, PROC_SIZE> {
 			if (reload) {
 				this->reload();
 			}
+		}
+
+		void setTID(const StringView &tid) {
+			const size_t length = tid.length() < (TITLEID_OFFSET-1) ? tid.length() : TITLEID_OFFSET;
+			kwrite(address() + TITLEID_OFFSET, tid.c_str(), length + 1);
 		}
 
 		String getTitleId() const noexcept {

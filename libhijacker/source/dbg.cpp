@@ -91,7 +91,7 @@ static void logState(const DbgArg3 &arg) {
 	if (state == 7 || state == 0) {
 		puts("idk what this means other than we're screwed");
 	}
-	printf("state: 0x%08llx\n", state);
+	printf("state: 0x%08lx\n", state);
 	// NOLINTEND(*)
 }
 

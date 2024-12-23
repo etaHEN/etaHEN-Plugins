@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include "dbg.hpp"
 #include "dbg/dbg.hpp"
+#include <notify.hpp>
 #include "elf/elf.hpp"
 #include "fd.hpp"
 #include "hijacker/hijacker.hpp"
@@ -46,13 +47,13 @@ extern "C" int sceSystemServiceGetAppId(const char *);
 #include "backtrace.hpp"
 void sig_handler(int signo)
 {
-	notify("Cheats plugin has crashed with signal %d", signo);
+	printf_notification("Cheats plugin has crashed with signal %d", signo);
 	printBacktraceForCrash();
-    printf("ItemzLocalKillApp(sceSystemServiceGetAppId(ILLU00000)) returned %i\n", sceSystemServiceKillApp(sceSystemServiceGetAppId("ILLU00000"), -1, 0, 0));
+    exit(0);
 }
 
 #include "game_patch_xml_cfg.hpp"
-
+uintptr_t kernel_base = 0;
 int main()
 {
 	puts("daemon entered");
@@ -68,6 +69,9 @@ int main()
 	mkdir(BASE_ETAHEN_PATCH_SETTINGS_PATH, 0777);
 	mkdir(BASE_ETAHEN_PATCH_DATA_PATH_PS4, 0777);
 	mkdir(BASE_ETAHEN_PATCH_DATA_PATH_PS5, 0777);
+
+	payload_args_t *args = payload_get_args();
+	kernel_base = args->kdata_base_addr;
 
 	unlink("/data/etaHEN/cheat_plugin.log");
 

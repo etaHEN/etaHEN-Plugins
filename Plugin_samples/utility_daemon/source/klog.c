@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <poll.h>
-#include <ps5/payload_main.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>

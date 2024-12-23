@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <unistd.h>
-#include "kern.h"
 
 void userland_copyin(int pid, const void *src, uintptr_t dst, size_t length);
 

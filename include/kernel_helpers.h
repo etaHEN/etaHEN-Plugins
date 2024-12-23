@@ -8,8 +8,8 @@ extern "C" {
 #include <stddef.h>
 
 void kernel_init_rw(int master_sock, int victim_sock, int *rw_pipe, uint64_t pipe_addr);
-void kernel_copyin(void *src, uint64_t kdest, size_t length);
-void kernel_copyout(uint64_t ksrc, void *dest, size_t length);
+int kernel_copyin(const void *uaddr, unsigned long kaddr, unsigned long len);
+int kernel_copyout(unsigned long kaddr, void *uaddr, unsigned long len);
 
 #ifdef __cplusplus
 }

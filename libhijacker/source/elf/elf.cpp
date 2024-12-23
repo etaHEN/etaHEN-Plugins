@@ -16,7 +16,8 @@ extern "C" {
 	#include <sys/_stdint.h>
 	#include <stdint.h>
 	#include <sys/elf64.h>
-	#include <ps5/payload_main.h>
+	#include <ps5/payload.h>
+
 	int puts(const char *);
 	int usleep(unsigned int useconds);
 	uintptr_t mmap(uintptr_t, size_t, int, int, int, off_t);
@@ -673,6 +674,8 @@ struct KernelRWArgs {
 static int rwpipe[2]; // NOLINT(*)
 static int rwpair[2]; // NOLINT(*)
 
+typedef int dlsym_t(int, const char*, void*);
+
 static struct InternalPayloadArgs {
 	struct payload_args args;
 	int payloadout;
@@ -684,11 +687,11 @@ static uintptr_t setupKernelRWInplace(const Hijacker& hijacker) {
 	rwpair[0] = _master_sock;
 	rwpair[1] = _victim_sock;
 	gResult.args = {
-		.dlsym = reinterpret_cast<dlsym_t*>(hijacker.getLibKernelFunctionAddress(nid::sceKernelDlsym)), // NOLINT(*)
+		.sys_dynlib_dlsym = reinterpret_cast<dlsym_t*>(hijacker.getLibKernelFunctionAddress(nid::sceKernelDlsym)), // NOLINT(*)
 		.rwpipe = rwpipe,
 		.rwpair = rwpair,
-		.kpipe_addr = _pipe_addr,
-		.kdata_base_addr = kernel_base,
+		.kpipe_addr = static_cast<intptr_t>(_pipe_addr),
+		.kdata_base_addr = static_cast<intptr_t>(kernel_base),
 		.payloadout = &gResult.payloadout
 	};
 	return reinterpret_cast<uintptr_t>(&gResult);
@@ -748,11 +751,11 @@ uintptr_t Elf::setupKernelRW() noexcept {
 
 	// NOLINTBEGIN(performance-no-int-to-ptr)
 	struct payload_args result = {
-		.dlsym = reinterpret_cast<dlsym_t *>(hijacker->getLibKernelFunctionAddress(nid::sceKernelDlsym)),
+		.sys_dynlib_dlsym = reinterpret_cast<dlsym_t *>(hijacker->getLibKernelFunctionAddress(nid::sceKernelDlsym)),
 		.rwpipe = reinterpret_cast<int *>(newFiles) + 2,
 		.rwpair = reinterpret_cast<int *>(newFiles),
-		.kpipe_addr = pipeaddr,
-		.kdata_base_addr = kernel_base,
+		.kpipe_addr = static_cast<intptr_t>(pipeaddr),
+		.kdata_base_addr = static_cast<intptr_t>(kernel_base),
 		.payloadout = reinterpret_cast<int*>(rsp + sizeof(struct payload_args))
 	};
 	// NOLINTEND(performance-no-int-to-ptr)
@@ -778,7 +781,7 @@ bool Elf::load() noexcept {
 
 		int j = 0;
 		while (!hijacker->write(vaddr, data + phdr->p_offset, phdr->p_filesz)) {
-			printf("failed to write section data for phdr with paddr 0x%08llx\n", phdr->p_paddr);
+			printf("failed to write section data for phdr with paddr 0x%08lx\n", phdr->p_paddr);
 			if (j++ > 10) { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 				// TODO: find out why I did this
 				return false;
@@ -850,7 +853,7 @@ static void correctRsp(dbg::Registers &regs) noexcept {
 }
 
 bool Elf::start(uintptr_t args) noexcept {
-	printf("imagebase: 0x%08llx\n", imagebase);
+	printf("imagebase: 0x%08lx\n", imagebase);
 	if (hijacker->getPid() == getpid()) {
 		auto fun = reinterpret_cast<int(*)(uintptr_t)>(imagebase + e_entry); // NOLINT(*)
 		bool res = fun(args) == 0;

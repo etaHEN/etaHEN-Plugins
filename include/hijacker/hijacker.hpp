@@ -10,8 +10,10 @@
 #include <sys/_stdint.h>
 
 class Hijacker {
-
+	
+#ifndef LIBKERNEL_HANDLE
 	static constexpr int LIBKERNEL_HANDLE = 0x2001;
+#endif
 
 	UniquePtr<SharedObject> obj;
 

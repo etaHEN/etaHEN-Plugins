@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <elf.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

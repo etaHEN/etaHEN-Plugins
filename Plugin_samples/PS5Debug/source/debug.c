@@ -18,8 +18,6 @@ int g_debugging;
 struct server_client *curdbgcli;
 struct debug_context *curdbgctx;
 
-void free(void *ptr);
-
 int debug_attach_handle(int fd, struct cmd_packet *packet) {
     struct cmd_debug_attach_packet *ap;
     int r;

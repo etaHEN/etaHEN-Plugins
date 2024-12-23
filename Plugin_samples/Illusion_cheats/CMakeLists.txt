@@ -53,16 +53,14 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 
 message("========== build: ${PROJECT_NAME} ==========")
 set(D_SRC ${D_CWD}/source)
-include_directories	(SYSTEM "${D_SRC}/../../../libelfloader/source/")
-file(GLOB SrcFiles ${D_SRC}/*.c ${D_SRC}/*.cpp ${D_SRC}/*.h ${D_SRC}/*.hpp ${D_SRC}/*.s ${D_SRC}/../../../extern/pfd_sfo_tools/sfopatcher/src/*.c ${D_SRC}/../../libelfloader/source/ ${D_SRC}/../../../extern/pfd_sfo_tools/sfopatcher/src/*.h ${D_SRC}/../../../extern/tiny-json/*.c ${D_SRC}/../../../extern/tiny-json/*.h ${D_SRC}/../../../extern/mxml/*.c ${D_SRC}/../../../extern/mxml/*.h)
 
-set(CMAKE_C_FLAGS "--target=x86_64-freebsd-pc-elf -march=znver2 -gfull -gdwarf-2 -O3")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c17 -Wall -Wextra -Werror -pedantic-errors")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPPR -DPS5 -Wno-ignored-qualifiers -Wno-sign-compare -Wno-unused-but-set-variable -DPS5_FW_VERSION=${V_FW}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_POSIX_SOURCE -D_POSIX_C_SOURCE=200112 -D__BSD_VISIBLE=1 -D__XSI_VISIBLE=500")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin -nostdlib")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE -flto=full")
+file(GLOB SrcFiles ${D_SRC}/../../../libhijacker/source/notify.cpp ${D_SRC}/*.c ${D_SRC}/*.cpp ${D_SRC}/*.h ${D_SRC}/*.hpp ${D_SRC}/*.s ${D_SRC}/../../../extern/pfd_sfo_tools/sfopatcher/src/*.c ${D_SRC}/../../libelfloader/source/ ${D_SRC}/../../../extern/pfd_sfo_tools/sfopatcher/src/*.h ${D_SRC}/../../../extern/tiny-json/*.c ${D_SRC}/../../../extern/tiny-json/*.h ${D_SRC}/../../../extern/mxml/*.c ${D_SRC}/../../../extern/mxml/*.h)
+
+set(CMAKE_C_FLAGS "--target=x86_64-sie-ps5 -DPPR -DPS5 -DPS5_FW_VERSION=${V_FW} ")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-keyword-macro -fPIC -fPIE -march=znver2 -Wall -Werror -fstack-protector-all")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -DDEBUG -gfull -gdwarf-2 -O0 -pedantic -pedantic-errors")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 ")
+
 add_custom_command(TARGET ${basename}
                    POST_BUILD
                    COMMAND python3 "${CMAKE_SOURCE_DIR}/lib/make_plugin.py" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${basename}.elf" "${PLUGIN_TITLE_ID}" "${PLUGIN_VERSION}"
@@ -75,4 +73,3 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${D_CWD}/../shared/include")
 target_link_directories	(${PROJECT_NAME} PUBLIC "${PROJECT_ROOT}/lib")
 target_link_libraries	(${PROJECT_NAME} PUBLIC hijacker SceLibcInternal SceSystemService SceNet SceSysmodule SceUserService SceNetCtl SceSysCore ScePad SceVideoOut kernel_sys SceAppInstUtil elfloader)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld -flto=full -Xlinker -pie -Xlinker -zmax-page-size=16384 -Xlinker -zcommon-page-size=16384 -Xlinker -T ${D_CWD}/linker.x -Wl,--build-id=none -Wl,-z,norelro")

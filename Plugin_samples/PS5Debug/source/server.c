@@ -18,14 +18,8 @@
 #include "mdbg.h"
 #include "tracer.h"
 #include "libsce_defs.h"
-#include <sys/errno.h>
+
 bool unload_cmd_sent = false;
-
-#define	ECONNRESET	54		/* Connection reset by peer */
-
-
-void free(void* ptr);
-void* malloc(size_t size);
 
 struct server_client servclients[SERVER_MAXCLIENTS];
 
@@ -407,7 +401,7 @@ int start_server() {
     printf("ps4debug " PACKET_VERSION " server started\n");
 
     ScePthread broadcast;
-    scePthreadCreate(&broadcast, NULL, (void*)&broadcast_thread, NULL, "broadcast");
+    scePthreadCreate(&broadcast, NULL, broadcast_thread, NULL, "broadcast");
 
     // server structure
     server.sin_len = sizeof(server);
@@ -470,7 +464,7 @@ int start_server() {
             memset(&svc->dbgctx, 0, sizeof(svc->dbgctx));
 
             ScePthread thread;
-            scePthreadCreate(&thread, NULL, (void *)&handle_client, (void *)svc, "clienthandler");
+            scePthreadCreate(&thread, NULL, (void * (*)(void *))handle_client, (void *)svc, "clienthandler");
         }
 
         sceKernelSleep(2);

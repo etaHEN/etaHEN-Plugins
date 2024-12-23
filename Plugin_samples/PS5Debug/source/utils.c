@@ -6,9 +6,6 @@
 #include "utils.h"
 #include "libsce_defs.h"
 
-
-void *malloc(size_t size);
-
 void prefault(void *address, size_t size) {
     for(uint64_t i = 0; i < size; i++) {
         volatile uint8_t c;
@@ -25,20 +22,12 @@ void *pfmalloc(size_t size) {
 }
 
 void printf_notification(const char* fmt, ...) {
-	OrbisNotificationRequest req;
-	(void)memset(&req, 0, sizeof(OrbisNotificationRequest));
-	char buff[3075];
+    notify_request_t req = {0};
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(req.message, sizeof req.message, fmt, args);
+    va_end(args);
 
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(buff, sizeof(buff), fmt, args);
-	va_end(args);
-
-	req.type = 0;
-	req.unk3 = 0;
-	req.use_icon_image_uri = 1;
-	req.target_id = -1;
-	strcpy(req.uri, "cxml://psnotification/tex_icon_system");
-
-	sceKernelSendNotificationRequest(0, &req, sizeof(req), 0);
+    sceKernelSendNotificationRequest(0, &req, sizeof req, 0);
+    puts(req.message);
 }

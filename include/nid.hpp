@@ -60,6 +60,7 @@ static inline constexpr Nid mmap{"BPE9s9vQQXo"};
 static inline constexpr Nid sceSysmoduleLoadModule{"g8cM39EUZ6o"};
 static inline constexpr Nid munmap{"UqDGjXA5yUM"};
 static inline constexpr Nid sceKernelJitCreateSharedMemory{"avvJ3J0H0EY"};
+static inline constexpr Nid sceKernelUnloadModule{"QKd0qM58Qes"};
 static inline constexpr Nid socket{"TU-d9PfIHPM"};
 static inline constexpr Nid pipe{"-Jp7F+pXxNg"};
 static inline constexpr Nid sceKernelDlsym{"LwG8g3niqwA"};
@@ -96,5 +97,4 @@ static inline constexpr Nid strlen{"j4ViWNHEgww"};
 static inline constexpr Nid sceAppInstUtilInstallByPackage{"tDtjgaXYmuo"};
 
 static inline constexpr Nid sceKernelIsDevelopmentMode{"UtO0OHMCgmI"};
-static inline constexpr Nid scePadReadState("YndgXqQVV7c");
 }

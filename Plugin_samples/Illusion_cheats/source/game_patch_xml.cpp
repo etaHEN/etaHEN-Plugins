@@ -11,7 +11,7 @@ __asm__(
 	".intel_syntax noprefix\n"
 	".section .data\n"
 	"DefaultXml_FliprateList:\n"
-	".incbin \"" "Plugin_samples/Illusion_cheats/data/game_patch_fliprate_list.xml" "\"\n");
+	".incbin \"" "data/game_patch_fliprate_list.xml" "\"\n");
 
 extern "C" const char DefaultXml_FliprateList[];
 
@@ -526,17 +526,16 @@ int Xml_ParseGamePatch(GamePatchInfo* info)
 	char* patch_buffer = nullptr;
 	uint64_t patch_size = 0;
 	char input_file[MAX_PATH]{};
-	int32_t path_len = 0;
 	switch (info->app_mode)
 	{
 	case PS4_APP:
 	{
-		path_len = snprintf(input_file, sizeof(input_file), BASE_ETAHEN_PATCH_DATA_PATH_PS4 "/%s.xml", info->titleID);
+		snprintf(input_file, sizeof(input_file), BASE_ETAHEN_PATCH_DATA_PATH_PS4 "/%s.xml", info->titleID);
 		break;
 	}
 	case PS5_APP:
 	{
-		path_len = snprintf(input_file, sizeof(input_file), BASE_ETAHEN_PATCH_DATA_PATH_PS5 "/%s.xml", info->titleID);
+		snprintf(input_file, sizeof(input_file), BASE_ETAHEN_PATCH_DATA_PATH_PS5 "/%s.xml", info->titleID);
 		break;
 	}
 	default:
@@ -601,7 +600,7 @@ int Xml_ParseGamePatch(GamePatchInfo* info)
 
 			uint64_t hashout = patch_hash_calc(TitleData, NameData, AppVerData, input_file, AppElfData);
 			char settings_path[MAX_PATH] = { 0 };
-			snprintf(settings_path, sizeof(settings_path), BASE_ETAHEN_PATCH_SETTINGS_PATH "/0x%016llx.txt", hashout);
+			snprintf(settings_path, sizeof(settings_path), BASE_ETAHEN_PATCH_SETTINGS_PATH "/0x%016lx.txt", hashout); ///0x%016llx.txt >>>
 			//sceKernelChmod(settings_path, 0777);
 			int32_t res = Read_File(settings_path, &settings_buffer, &settings_size, 0);
 			cheat_log("settings_path: %s, 0x%08x\n", settings_path, res);

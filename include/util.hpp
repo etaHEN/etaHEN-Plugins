@@ -890,16 +890,5 @@ class Vector {
 #include <string.h>
 #include <unistd.h>
 
-struct app_info{
-    const char16_t* tid;  //u"BREW00001"
-    const char16_t* con_id; //u"IV9999-BREW00001_00-XXXXXXXXXXXXXXXX"
-    const char16_t* title; //u"PS5 App"
-    const char16_t* metapath; //u"/system_ex/app/BREW00001/sce_sys/"
-    const char16_t* cid;  //u"cid:local:BREW00001"
-    const char16_t* psgmplay; //u"psgm:play?id=BREW00001"
-    const char16_t* icon0; //u"/system_ex/app/BREW00001/sce_sys/icon0.png"
-    const char16_t* pic0; //u"/system_ex/app/BREW00001/sce_sys/pic0.png"
-    const char16_t* pshome; //u"pshome:gamehub?titleId=BREW00001"
-	bool is_ps5 = true;
-};
+
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

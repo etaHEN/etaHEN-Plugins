@@ -17,7 +17,7 @@
 #define	SO_SNDBUF		0x1001		/* send buffer size */
 #define	SO_RCVBUF		0x1002		/* receive buffer size */
 
-//#define FD_SETSIZE 1024
+#define FD_SETSIZE 1024
 typedef unsigned long fd_mask;
 
 int net_select(int fd, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);

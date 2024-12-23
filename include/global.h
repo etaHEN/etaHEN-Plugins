@@ -336,6 +336,67 @@ void *       sceKernelGetEventUserData(const SceKernelEvent *ev);
 int sceKernelCreateEqueue(SceKernelEqueue *eq, const char *name);
 int sceKernelDeleteEqueue(SceKernelEqueue eq);
 
+
+
+typedef enum {
+    EventType_Invalid,
+    EventType_AppLaunchStart,
+    EventType_AppLaunchEnd,
+    EventType_AppKillStart,
+    EventType_AppKillEnd,
+    EventType_AppSuspending,
+    EventType_AppSuspended,
+    EventType_AppResuming,
+    EventType_AppResumed,
+    EventType_CdlgActive = 17,
+    EventType_CdlgDeactive,
+    EventType_CoredumpStart = 241,
+    EventType_AppFocusStart = 4097,
+    EventType_AppFocusEnd,
+    EventType_ControllerFocusStart,
+    EventType_ControllerFocusEnd
+} EventType;
+
+// Define AppAttr enum
+typedef enum {
+    AppAttr_None = 0,
+    AppAttr_DisableSystemBG = 1,
+    AppAttr_LaunchByDebugger = 2,
+    AppAttr_LaunchByAppHomeData = 4,
+    AppAttr_VRMode = 16,
+    AppAttr_NonVRMode = 32,
+    AppAttr_LaunchSfFromGame = 64,
+    AppAttr_LaunchBackFromSf = 128,
+    AppAttr_LaunchTitleIdByHost = 256,
+    AppAttr_EnlargeFmem256mb = 512,
+    AppAttr_LaunchByAppHomeWs1 = 1024,
+    AppAttr_LaunchByAppHomeWs2 = 2048,
+    AppAttr_LaunchByAppHomeWs3 = 4096,
+    AppAttr_LaunchByAppHomeWs4 = 8192,
+    AppAttr_LaunchByAppHomeWs5 = 16384,
+    AppAttr_LaunchByAppHomeWs6 = 32768,
+    AppAttr_LaunchByAppHomeWs7 = 65536,
+    AppAttr_LaunchByAppHomeM2 = 131072
+} AppAttr;
+
+// Define CrashReportMode enum
+typedef enum {
+    CrashReportMode_KillApp,
+    CrashReportMode_KillLocalProcess
+} CrashReportMode;
+
+// Function prototype (assuming similar to C# method)
+// Define the AppStatus struct in C
+typedef struct {
+    int32_t appId;
+    int32_t launchRequestAppId;
+    AppType appType;
+    AppAttr appAttr;
+    char titleId[128]; // Assuming the titleId length as 128, adjust as needed
+    uint32_t appCategoryType;
+} AppStatus;
+
+
 /*
  * reading status
  */
