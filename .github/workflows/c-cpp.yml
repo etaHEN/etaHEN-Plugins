@@ -1,39 +1,60 @@
-name: CMake
+name: CI
 
 on:
   push:
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
+      - '**/*.txt'
   pull_request:
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
+      - '**/*.txt'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.event_name  }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  payload-build:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Setup environment
+    - name: Get Latest SDK Release Info
+      id: sdk-release
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+         const release = await github.rest.repos.getReleaseByTag({
+            owner: 'ps5-payload-dev',
+            repo: 'sdk',
+            tag: 'v0.21.1'
+          });
+          core.setOutput('download_url', release.data.assets.find(asset => asset.name.endsWith('.zip')).browser_download_url);
+
+    - name: Download Latest SDK
       run: |
-        echo "PS5SDK=${{ github.workspace }}/ps5sdk" >> $GITHUB_ENV
-        sudo apt install ninja-build
+        curl -L "${{ steps.sdk-release.outputs.download_url }}" -o ps5-sdk.zip
+        mkdir -p ${{ runner.tool_cache }}/ps5-payload-sdk
+        unzip ps5-sdk.zip -d ${{ runner.tool_cache }}/ps5-payload-sdk
+        echo PS5_PAYLOAD_SDK=${{ runner.tool_cache }}/ps5-payload-sdk/ps5-payload-sdk >> $GITHUB_ENV
 
-    - name: Show Clang version
-      run: clang -v
+    - name: Checkout Payload
+      uses: actions/checkout@v3
 
-    - name: Checkout
-      uses: actions/checkout@main
+    - name: Build ELF
+      run: |
+        bash ./build.sh
+        cp bin/spawner.elf bin/etaHEN.bin
+        echo "commit_ver=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+        echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@main
       with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: Checkout PS5SDK
-      uses: actions/checkout@main
-      with:
-        repository: illusion0001/PS5SDK
-        ref: nand-clang-16
-        path: ${{ env.PS5SDK }}
+        name: etaHEN_${{ env.commit_ver }}-${{ env.commit_hash }}
+        path: bin
 
     - name: Set commit version
       run: |
