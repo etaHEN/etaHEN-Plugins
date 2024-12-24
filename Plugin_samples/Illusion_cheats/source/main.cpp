@@ -45,11 +45,12 @@ extern "C" int sceSystemServiceGetAppId(const char *);
 #define BUILD_MSG "Non Rest Mode Build"
 #endif
 #include "backtrace.hpp"
+extern "C" int sceSystemServiceLoadExec(const char *path, void* args);
 void sig_handler(int signo)
 {
 	printf_notification("Cheats plugin has crashed with signal %d", signo);
 	printBacktraceForCrash();
-    exit(0);
+    sceSystemServiceLoadExec("exit", nullptr);
 }
 
 #include "game_patch_xml_cfg.hpp"
@@ -62,8 +63,9 @@ int main()
 	sigemptyset(&new_SIG_action.sa_mask);
 	new_SIG_action.sa_flags = 0;
 
-	for (int i = 0; i < 12; i++)
-		sigaction(i, &new_SIG_action, NULL);
+	for (int i = 0; i < 12; i++){
+	  	sigaction(i, &new_SIG_action, NULL);
+	}
 
 	mkdir(BASE_ETAHEN_PATCH_PATH, 0777);
 	mkdir(BASE_ETAHEN_PATCH_SETTINGS_PATH, 0777);
@@ -83,8 +85,8 @@ int main()
 	// remove this when it's possible to load elf into games at boot
 	pthread_t game_patch_thread_id = nullptr;
 	pthread_create(&game_patch_thread_id, nullptr, GamePatch_Thread, nullptr);
-	//pthread_t game_patch_input_thread_id = nullptr;
-	//pthread_create(&game_patch_input_thread_id, nullptr, GamePatch_InputThread, nullptr);
+	pthread_t game_patch_input_thread_id = nullptr;
+	pthread_create(&game_patch_input_thread_id, nullptr, GamePatch_InputThread, nullptr);
 
 	g_game_patch_thread_running = true;
 #ifdef RESTMODE
