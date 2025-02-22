@@ -5,7 +5,8 @@ etaHEN Plugin SDK
 - Any ELF or Plugin made with this SDK is already jailbroken, no code required
 
 
-etaHEN ELFs vs Plugins
+
+ELFs vs etaHEN Plugins
 -------------
 - **ELFs**: are meant for single use payload-like programs where they run a single task (like showing hwinfo in a notification, etc) will need johns elf losder active 
 - **Plugins**: are daemons that are meant to run the whole time the console is on in the background (can only be loaded by etaHEN)
@@ -24,18 +25,10 @@ set(PLUGIN_VERSION "9.99")
 ```
 - libhijacker provides plugins with tools to modify processes
 
-ELFs
---------
-
-* The elf loader will listen on port `9022`. This is to prevent conflicts
-  with the elf loader used to start etaHEN.
-* Payloads are run as an app local process (subprocess)
-* Up to 6 payloads may be running simultaneously.
-  This may be extended to 15 in the future if editing the budget becomes possible.
-* All payloads have a default sighandler installed automatically for signals that will
-  cause abnormal termination. If a payload crashes, even though they are separate
-  processes, `SysCore` will terminate the entire application and all running local processes.
-  The default sighandler is as follows; if you don't like it, install your own.
+> [!Note]
+> Kstuff slows down plugin loading!
+> If you are on a firmware that uses kstuff it may take up to 1 min for the plugin to load 
+>
 
 ```c
 static void default_handler(int sig) {
