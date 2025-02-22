@@ -4,7 +4,10 @@ etaHEN Plugin SDK
 - The etaHEN Plugin SDK has support for dynamic linking with libraries available in the libs folder 
 - Any ELF or Plugin made with this SDK is already jailbroken, no code required
 
-
+> [!Note]
+> Kstuff slows down plugin loading!
+> If you are on a firmware that uses kstuff it may take up to 1 min for the plugin to load 
+>
 
 ELFs vs etaHEN Plugins
 -------------
@@ -24,11 +27,6 @@ set(PLUGIN_TITLE_ID "TEST00000")
 set(PLUGIN_VERSION "9.99")
 ```
 - libhijacker provides plugins with tools to modify processes
-
-> [!Note]
-> Kstuff slows down plugin loading!
-> If you are on a firmware that uses kstuff it may take up to 1 min for the plugin to load 
->
 
 ```c
 static void default_handler(int sig) {
