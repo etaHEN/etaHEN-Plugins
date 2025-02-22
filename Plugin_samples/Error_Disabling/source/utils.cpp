@@ -201,22 +201,30 @@ bool patchShellCore() {
     switch (getSystemSwVersion() & VERSION_MASK) {
     case V200:
       offset = 0x7B7F96;
+      break;
     case V220:
       offset = 0x7B82E6;
+      break;
     case V225:
       offset = 0x7B8836;
+      break;
     case V226:
       offset = 0x7B9FE6;
+      break;
     case V230:
       offset = 0x7BAB76;
+      break;
     case V250:
     case V270:
       offset = 0x7BBF26;
+      break;
     case V300:
     case V310:
       offset = 0x899166;
+      break;
     case V320:
       offset = 0x89945B;
+      break;
     case V321:
       offset = 0x899456;
       break;
@@ -224,6 +232,7 @@ bool patchShellCore() {
     case V402:
     case V403:
       offset = 0x81CA56;
+      break;
     case V450:
     case V451:
       offset = 0x81D3C6;
