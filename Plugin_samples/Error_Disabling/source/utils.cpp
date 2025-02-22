@@ -229,6 +229,7 @@ bool patchShellCore() {
     plugin_log("offset: 0x%p", offset);
     if (offset) {
       write_bytes(g_ShellCorePid, (shellcore_base + offset), "9090909090");
+      status = true;
     }
   }
   if (shellcore_copy) {
