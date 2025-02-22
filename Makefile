@@ -171,6 +171,32 @@ PS5Debug/fast:
 	$(MAKE) $(MAKESILENT) -f Plugin_samples/PS5Debug/CMakeFiles/PS5Debug.dir/build.make Plugin_samples/PS5Debug/CMakeFiles/PS5Debug.dir/build
 .PHONY : PS5Debug/fast
 
+#=============================================================================
+# Target rules for targets named Game_Plugin_Loader
+
+# Build rule for target.
+Game_Plugin_Loader: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Game_Plugin_Loader
+.PHONY : Game_Plugin_Loader
+
+# fast build rule for target.
+Game_Plugin_Loader/fast:
+	$(MAKE) $(MAKESILENT) -f Plugin_samples/Game_Plugin_Loader/CMakeFiles/Game_Plugin_Loader.dir/build.make Plugin_samples/Game_Plugin_Loader/CMakeFiles/Game_Plugin_Loader.dir/build
+.PHONY : Game_Plugin_Loader/fast
+
+#=============================================================================
+# Target rules for targets named Error_Disabling
+
+# Build rule for target.
+Error_Disabling: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Error_Disabling
+.PHONY : Error_Disabling
+
+# fast build rule for target.
+Error_Disabling/fast:
+	$(MAKE) $(MAKESILENT) -f Plugin_samples/Error_Disabling/CMakeFiles/Error_Disabling.dir/build.make Plugin_samples/Error_Disabling/CMakeFiles/Error_Disabling.dir/build
+.PHONY : Error_Disabling/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -179,6 +205,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... Error_Disabling"
+	@echo "... Game_Plugin_Loader"
 	@echo "... PS5Debug"
 	@echo "... hijacker"
 	@echo "... illusion_cheats"
