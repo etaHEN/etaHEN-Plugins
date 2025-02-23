@@ -63,6 +63,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 ")
 add_custom_command(TARGET ${basename}
                    POST_BUILD
                    COMMAND python3 "${CMAKE_SOURCE_DIR}/lib/make_plugin.py" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${basename}.elf" "${PLUGIN_TITLE_ID}" "${PLUGIN_VERSION}"
+                   COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${basename}.elf"                
                    COMMENT "Finishing Plugin"
                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
