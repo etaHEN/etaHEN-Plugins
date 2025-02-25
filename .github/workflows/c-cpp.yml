@@ -19,17 +19,16 @@ jobs:
   payload-build:
     runs-on: ubuntu-latest
     steps:
-
+    
     - name: Get Latest SDK Release Info
       id: sdk-release
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-         const release = await github.rest.repos.getReleaseByTag({
-            owner: 'ps5-payload-dev',
-            repo: 'sdk',
-            tag: 'v0.21.1'
+          const release = await github.rest.repos.getLatestRelease({
+            owner: 'LightningMods',
+            repo: 'etaHEN-SDK'
           });
           core.setOutput('download_url', release.data.assets.find(asset => asset.name.endsWith('.zip')).browser_download_url);
 
@@ -39,6 +38,7 @@ jobs:
         mkdir -p ${{ runner.tool_cache }}/ps5-payload-sdk
         unzip ps5-sdk.zip -d ${{ runner.tool_cache }}/ps5-payload-sdk
         echo PS5_PAYLOAD_SDK=${{ runner.tool_cache }}/ps5-payload-sdk/ps5-payload-sdk >> $GITHUB_ENV
+        chmod 0777 -R ${{ runner.tool_cache }}/ps5-payload-sdk/ps5-payload-sdk 
 
     - name: Checkout Payload
       uses: actions/checkout@v3
