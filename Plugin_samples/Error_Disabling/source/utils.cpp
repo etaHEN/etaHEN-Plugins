@@ -237,6 +237,16 @@ bool patchShellCore() {
     case V451:
       offset = 0x81D3C6;
       break;
+    case V500:
+      offset = 0x8CEAC6;
+      break;
+    case V502:
+      offset = 0x8CEAB6;
+      break;
+    case V510:
+    case V550:
+      offset = 0x81D3C6;
+      break;
     default:
 #if 0
       uint64_t addr = shellcore_base +  (uint64_t)0x070FEFC;
