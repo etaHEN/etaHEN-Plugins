@@ -454,9 +454,6 @@ for (auto p: dbg::getProcesses()) {
       }
       if (!fliprate_game_found) {
         ResumeApp(app_pid);
-        if (g_UniversalFlipRatePatch) {
-          patch_SetFlipRate(*executable, app_pid);
-        }
       }
     }
   }
