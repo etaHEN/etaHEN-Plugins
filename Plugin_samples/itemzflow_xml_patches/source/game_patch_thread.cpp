@@ -31,6 +31,40 @@ void write_log(const char *text) {
   close(fd);
 }
 
+
+int32_t patch_SetFlipRate(const Hijacker &hijacker, const pid_t pid) {
+  static constexpr Nid sceVideoOutSetFlipRate_Nid{"CBiu4mCE1DA"};
+  UniquePtr<SharedLib> lib = hijacker.getLib("libSceVideoOut.sprx"_sv);
+  while (lib == nullptr) {
+    lib = hijacker.getLib("libSceVideoOut.sprx"_sv);
+    // usleep(100);
+  }
+  SuspendApp(pid);
+  if (lib) {
+    uint8_t is_mov_r14d_esi[3]{};
+    const auto sceVideoOutSetFlipRate_ =
+        hijacker.getFunctionAddress(lib.get(), sceVideoOutSetFlipRate_Nid);
+    dbg::read(pid, sceVideoOutSetFlipRate_ + 0xa, &is_mov_r14d_esi,
+              sizeof(is_mov_r14d_esi));
+    if (is_mov_r14d_esi[0] == 0x41 && is_mov_r14d_esi[1] == 0x89 &&
+        is_mov_r14d_esi[2] == 0xf6) {
+      uint8_t xor_r14d_r14d[3] = {0x45, 0x31, 0xf6};
+      dbg::write(pid, sceVideoOutSetFlipRate_ + 0xa, xor_r14d_r14d,
+                 sizeof(xor_r14d_r14d));
+      printf_notification("sceVideoOutSetFlipRate Patched");
+    } else {
+      // in case user loaded modified prx, lets make it do nothing
+      printf_notification("Cannot find sceVideoOutSetFlipRate "
+                          "location\nPatching it to return 0.");
+      uint8_t xor_eax_eax_ret[3] = {0x31, 0xc0, 0xc3};
+      dbg::write(pid, sceVideoOutSetFlipRate_, xor_eax_eax_ret,
+                 sizeof(xor_eax_eax_ret));
+    }
+  }
+  ResumeApp(pid);
+  return 0;
+}
+
 void cheat_log(const char *fmt, ...) {
   char msg[0x1000]{};
   va_list args;
@@ -380,9 +414,6 @@ for (auto p: dbg::getProcesses()) {
       }
       if (!fliprate_game_found) {
         ResumeApp(app_pid);
-        if (g_UniversalFlipRatePatch) {
-          patch_SetFlipRate(*executable, app_pid);
-        }
       }
     } else if (text_base && !g_foundApp && (startsWith(app_id, "PPSA"))) {
       char app_ver[APP_VER_SIZE]{};       // `contentVersion`
@@ -430,13 +461,6 @@ for (auto p: dbg::getProcesses()) {
     }
   }
 
-  if (shellcore_pid) {
-    if (UnPatchShellCore(shellcore_pid)) {
-      printf_notification("Patches for ShellCore has been uninstalled.");
-    } else {
-      printf_notification("Failed to uninstall patches for ShellCore.");
-    }
-  }
   printf_notification("Game Patch thread has requested to stop");
   pthread_exit(nullptr);
   return nullptr;
