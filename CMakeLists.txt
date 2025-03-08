@@ -18,4 +18,4 @@ add_subdirectory(Plugin_samples/itemzflow_xml_patches)
 add_subdirectory(Plugin_samples/PS5Debug)
 add_subdirectory(Plugin_samples/Game_Plugin_Loader)
 add_subdirectory(Plugin_samples/Error_Disabling)
-add_subdirectory(Plugin_samples/Remote_Package_Installer)
+
