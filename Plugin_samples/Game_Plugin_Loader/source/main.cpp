@@ -4,7 +4,7 @@
 
 void sig_handler(int signo)
 {
-	printf_notification("the BO6 enabler plugin has crashed with signal %d\nif you need it you can relaunch via the etaHEN toolbox in debug settings", signo);
+	printf_notification("the Game enabler plugin has crashed with signal %d\nif you need it you can relaunch via the etaHEN toolbox in debug settings", signo);
 	printBacktraceForCrash();
     printf("ItemzLocalKillApp(sceSystemServiceGetAppId(BLOP60000)) returned %i\n", sceSystemServiceKillApp(sceSystemServiceGetAppId("BLOP60000"), -1, 0, 0));
 }
@@ -30,6 +30,8 @@ static void SuspendApp(pid_t pid)
 	sceKernelSuspendProcess(pid);
 }
 
+#define HOOKED_GAME_TID "PPSA04264"
+
 static void ResumeApp(pid_t pid)
 {
 	// we need to sleep the thread after suspension
@@ -42,7 +44,7 @@ static void ResumeApp(pid_t pid)
 uintptr_t kernel_base = 0;
 int main()
 {
-	puts("plugin entered");
+	plugin_log("plugin entered");
 
 	payload_args_t *args = payload_get_args();
 	kernel_base = args->kdata_base_addr;
@@ -58,28 +60,30 @@ int main()
 	unlink("/data/etaHEN/plloader_plugin.log");
 
 	printf_notification("Game Plugin Loader 0.0.1A PS5 Ed.");
-	bo6_log("Game Plugin Loader 0.0.1A PS5 Ed. starting...");
+	plugin_log("Game Plugin Loader 0.0.1A PS5 Ed. starting...");
     
 	String title_id;
 	int appid = 0;
-	while(!Is_BLOPS_Running(appid))
+	while(!Is_Game_Running(appid, HOOKED_GAME_TID))
 	{
-		printf_notification("Waiting for Black Ops 6 to start...");
-		sleep(6);
+		//printf_notification("Waiting for the Game to start...");
+		usleep(200);
 	}
+
+	SuspendApp(appid);
 
 	int bappid = 0, pid = 0;
 	for (size_t j = 0; j <= 9999; j++) {
         if(_sceApplicationGetAppId(j, &bappid) < 0)
             continue;
 
-        if(appid == bappid){
-            pid = j;
-			bo6_log("BLOPS6 is running, appid 0x%X, pid %i", appid, pid);
-			printf_notification("BLOPS6 is running, appid 0x%X, pid %i", appid, pid);
-            break;
+             if(appid == bappid){
+                pid = j;
+		        plugin_log("Game is running, appid 0x%X, pid %i", appid, pid);
+		        printf_notification("Game is running, appid 0x%X, pid %i", appid, pid);
+                break;
+             }
         }
-    }
 
 	UniquePtr<Hijacker> executable = Hijacker::getHijacker(pid);
 	uintptr_t text_base = 0;
@@ -91,36 +95,31 @@ int main()
 	}
 	else
 	{
-		bo6_log("Failed to get hijacker for (%d)", pid);
+		plugin_log("Failed to get hijacker for (%d)", pid);
 		printf_notification("Failed to get hijacker for (%d), try re-running the plugin", pid);
 		return -1;
 	}
 	if (text_base == 0 || text_size == 0)
 	{
-		bo6_log("text_base == 0 || text_size == 0");
+		plugin_log("text_base == 0 || text_size == 0");
 		printf_notification("text_base == 0 || text_size == 0 (%d), try re-running the plugin", pid);
 		return -1;
 	}
-
-	SuspendApp(pid);
-	sleep(1);
-
-	if(!patchBO6(executable, text_base)){
-		bo6_log("Failed to patch the game");
-		printf_notification("Failed to patch BO6, try re-running the plugin");
+	
+	if(!HookGame(executable, text_base)){
+		plugin_log("Failed to patch the game");
+		printf_notification("Failed to patch Game, try re-running the plugin");
 		return -1;
 	}
 
 	sleep(1);
 	ResumeApp(pid);
 
-    
+    // do smth else maybe?
 	while(1){
-
+            sleep(0x420);
 	}
 
 
-	// TODO add elf loader with options for process name and type (daemon/game)
-	// add whatever other crap people may want
 	return 0;
 }

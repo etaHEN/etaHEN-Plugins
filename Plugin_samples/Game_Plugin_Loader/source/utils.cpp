@@ -15,7 +15,7 @@ void write_log(const char* text)
 	close(fd);
 }
 
-void bo6_log(const char* fmt, ...)
+void plugin_log(const char* fmt, ...)
 {
 	char msg[0x1000]{};
 	va_list args;
@@ -38,9 +38,9 @@ void bo6_log(const char* fmt, ...)
 extern "C" int sceSystemServiceGetAppIdOfRunningBigApp();
 extern "C" int sceSystemServiceGetAppTitleId(int app_id, char* title_id);
 
-bool Is_BLOPS_Running(int &BigAppid)
+bool Is_Game_Running(int &BigAppid, const char* title_id)
 {
-  std::string title_id;
+
 	char tid[255];
 	BigAppid = sceSystemServiceGetAppIdOfRunningBigApp();
 	if (BigAppid < 0)
@@ -54,38 +54,37 @@ bool Is_BLOPS_Running(int &BigAppid)
 		return false;
 	}
 
-	title_id = std::string (tid);
-  if(title_id == "CUSA03041")
+    if(std::string (tid) == std::string(title_id))
 	{
-	    bo6_log("CUSA03041 is running, appid 0x%X", BigAppid);
+	   plugin_log("%s is running, appid 0x%X", BigAppid, title_id);
        return true;
 	}
 
 	return false;
 }
 
-bool patchBO6(UniquePtr<Hijacker> &hijacker, uint64_t alsr_b) {
-  bo6_log("Patching BO6 Now");
+bool HookGame(UniquePtr<Hijacker> &hijacker, uint64_t alsr_b) {
+  plugin_log("Patching Game Now");
 
-  BO6Builder builder = BUILDER_TEMPLATE;
-  BO6Stuff stuff{*hijacker};
+  GameBuilder builder = BUILDER_TEMPLATE;
+  GameStuff stuff{*hijacker};
 
   UniquePtr<SharedLib> lib = hijacker->getLib("libScePad.sprx");
-  bo6_log("libScePad.sprx addr: 0x%llx", lib->imagebase());
+  plugin_log("libScePad.sprx addr: 0x%llx", lib->imagebase());
   stuff.scePadReadState = hijacker->getFunctionAddress(lib.get(), nid::scePadReadState);
 
-  bo6_log("scePadReadState addr: 0x%llx", stuff.scePadReadState);
+  plugin_log("scePadReadState addr: 0x%llx", stuff.scePadReadState);
   if (stuff.scePadReadState == 0) {
-    bo6_log("failed to locate scePadReadState");
+    plugin_log("failed to locate scePadReadState");
     return false;
   }
 
   stuff.ASLR_Base = alsr_b;
-  strcpy(stuff.prx_path, "/data/etaHEN/plugins/Sheriff-132v106.prx");
+  strcpy(stuff.prx_path, "/data/shell.prx");
 
-  auto code = hijacker->getTextAllocator().allocate(BO6Builder::SHELLCODE_SIZE);
-  bo6_log("shellcode addr: 0x%llx", code);
-  auto stuffAddr = hijacker->getDataAllocator().allocate(sizeof(BO6Stuff));
+  auto code = hijacker->getTextAllocator().allocate(GameBuilder::SHELLCODE_SIZE);
+  plugin_log("shellcode addr: 0x%llx", code);
+  auto stuffAddr = hijacker->getDataAllocator().allocate(sizeof(GameStuff));
   // static constexpr Nid printfNid{"hcuQgD53UxM"};
   // static constexpr Nid amd64_set_fsbaseNid{"3SVaehJvYFk"};
   auto meta = hijacker->getEboot()->getMetaData();
@@ -101,7 +100,7 @@ bool patchBO6(UniquePtr<Hijacker> &hijacker, uint64_t alsr_b) {
 
       // write the hook
       hijacker->write<uintptr_t>(hook_adr, code);
-      bo6_log("hook addr: 0x%llx", hook_adr);
+      plugin_log("hook addr: 0x%llx", hook_adr);
 
       return true;
     }

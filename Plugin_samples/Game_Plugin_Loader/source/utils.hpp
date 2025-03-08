@@ -158,9 +158,9 @@ typedef struct {
                                   int *pRes);
   int (*sceKernelDlsym)(int handle, const char *symbol, void **addrp);
 
-} BO6ExtraStuff;
+} GameExtraStuff;
 #endif
-struct BO6Stuff {
+struct GameStuff {
   uintptr_t scePadReadState;
   uintptr_t debugout;
   uintptr_t sceKernelLoadStartModule;
@@ -169,13 +169,13 @@ struct BO6Stuff {
   char prx_path[256];
   int loaded = 0;
 
-  BO6Stuff(Hijacker &hijacker) noexcept
+  GameStuff(Hijacker &hijacker) noexcept
       : debugout(hijacker.getLibKernelAddress(nid::sceKernelDebugOutText)), 
         sceKernelLoadStartModule(hijacker.getLibKernelAddress(nid::sceKernelLoadStartModule)),
         sceKernelDlsym(hijacker.getLibKernelAddress(nid::sceKernelDlsym)) {}
 };
 
-struct BO6Builder {
+struct GameBuilder {
 
   static constexpr size_t SHELLCODE_SIZE = 137;
   static constexpr size_t EXTRA_STUFF_ADDR_OFFSET = 2;
@@ -187,7 +187,7 @@ struct BO6Builder {
   }
 };
 
-static constexpr BO6Builder BUILDER_TEMPLATE {
+static constexpr GameBuilder BUILDER_TEMPLATE {
     0x48, 0xba, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // MOV scePadReadState, RDX
 
     
@@ -206,6 +206,6 @@ static constexpr BO6Builder BUILDER_TEMPLATE {
 extern "C" int sceSystemServiceKillApp(int, int, int, int);
 extern "C" int sceSystemServiceGetAppId(const char *);
 extern "C" int _sceApplicationGetAppId(int pid, int *appId);
-void bo6_log(const char* fmt, ...);
-bool Is_BLOPS_Running(int &BigAppid);
-bool patchBO6(UniquePtr<Hijacker> &hijacker, uint64_t alsr_b);
+void plugin_log(const char* fmt, ...);
+bool Is_Game_Running(int &BigAppid, const char* title_id);
+bool HookGame(UniquePtr<Hijacker> &hijacker, uint64_t alsr_b);

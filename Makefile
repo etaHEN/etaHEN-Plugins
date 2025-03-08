@@ -146,17 +146,17 @@ util_daemon/fast:
 .PHONY : util_daemon/fast
 
 #=============================================================================
-# Target rules for targets named illusion_cheats
+# Target rules for targets named itemzflow_xml_patches
 
 # Build rule for target.
-illusion_cheats: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 illusion_cheats
-.PHONY : illusion_cheats
+itemzflow_xml_patches: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 itemzflow_xml_patches
+.PHONY : itemzflow_xml_patches
 
 # fast build rule for target.
-illusion_cheats/fast:
-	$(MAKE) $(MAKESILENT) -f Plugin_samples/Illusion_cheats/CMakeFiles/illusion_cheats.dir/build.make Plugin_samples/Illusion_cheats/CMakeFiles/illusion_cheats.dir/build
-.PHONY : illusion_cheats/fast
+itemzflow_xml_patches/fast:
+	$(MAKE) $(MAKESILENT) -f Plugin_samples/itemzflow_xml_patches/CMakeFiles/itemzflow_xml_patches.dir/build.make Plugin_samples/itemzflow_xml_patches/CMakeFiles/itemzflow_xml_patches.dir/build
+.PHONY : itemzflow_xml_patches/fast
 
 #=============================================================================
 # Target rules for targets named PS5Debug
@@ -197,6 +197,19 @@ Error_Disabling/fast:
 	$(MAKE) $(MAKESILENT) -f Plugin_samples/Error_Disabling/CMakeFiles/Error_Disabling.dir/build.make Plugin_samples/Error_Disabling/CMakeFiles/Error_Disabling.dir/build
 .PHONY : Error_Disabling/fast
 
+#=============================================================================
+# Target rules for targets named Remote_Package_Installer
+
+# Build rule for target.
+Remote_Package_Installer: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Remote_Package_Installer
+.PHONY : Remote_Package_Installer
+
+# fast build rule for target.
+Remote_Package_Installer/fast:
+	$(MAKE) $(MAKESILENT) -f Plugin_samples/Remote_Package_Installer/CMakeFiles/Remote_Package_Installer.dir/build.make Plugin_samples/Remote_Package_Installer/CMakeFiles/Remote_Package_Installer.dir/build
+.PHONY : Remote_Package_Installer/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -208,8 +221,9 @@ help:
 	@echo "... Error_Disabling"
 	@echo "... Game_Plugin_Loader"
 	@echo "... PS5Debug"
+	@echo "... Remote_Package_Installer"
 	@echo "... hijacker"
-	@echo "... illusion_cheats"
+	@echo "... itemzflow_xml_patches"
 	@echo "... util_daemon"
 .PHONY : help
 
