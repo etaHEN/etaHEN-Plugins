@@ -5,7 +5,7 @@ set(basename "itemzflow_xml_patches")
 project(${basename} C CXX)
 
 set(PLUGIN_TITLE_ID "XMLS00001")
-set(PLUGIN_VERSION "1.01")
+set(PLUGIN_VERSION "1.02")
 
 # Language Standard Defaults
 set(CMAKE_C_STANDARD 17)
