@@ -196,7 +196,7 @@ bool patchShellCore() {
   if (dbg::read(g_ShellCorePid, shellcore_base, shellcore_copy,
                 shellcore_size)) {
    
-    int offset = 0;
+    int offset = -1;
 
     switch (getSystemSwVersion() & VERSION_MASK) {
     case V200:
@@ -274,8 +274,8 @@ bool patchShellCore() {
       break;
     }
 
-    plugin_log("offset: 0x%p", offset);
-    if (offset) {
+    plugin_log("offset: 0x%llx", offset);
+    if (offset != -1) {
       write_bytes(g_ShellCorePid, (shellcore_base + offset), "9090909090");
       status = true;
     }
