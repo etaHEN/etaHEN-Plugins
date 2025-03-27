@@ -268,7 +268,7 @@ bool patchShellCore() {
 
       plugin_log("patched addr: 0x%lx", addr);
 #endif
-      plugin_log("Unknown firmware: 0x%08x", getSystemSwVersion());
+      printf_notification("Unknown firmware: 0x%08x", getSystemSwVersion());
       break;
     }
 
