@@ -26,8 +26,8 @@ int main()
 
 	unlink("/data/etaHEN/disabler_plugin.log");
 
-	printf_notification("PS5 FG Error Message Disabler 0.0.1A");
-	plugin_log("Error Disabler 0.0.1A PS5 Ed. starting...");
+	printf_notification("PS5 FG Error Message Disabler 4.0");
+	plugin_log("Error Disabler 4.0 PS5 Ed. starting...");
 
 	if(patchShellCore())
            printf_notification("Patched out the Error Messages!");
