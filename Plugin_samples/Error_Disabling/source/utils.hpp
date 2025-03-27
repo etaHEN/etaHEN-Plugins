@@ -56,7 +56,16 @@ static constexpr uint32_t V500 = 0x5000000;
 static constexpr uint32_t V502 = 0x5020000;
 static constexpr uint32_t V510 = 0x5100000;
 static constexpr uint32_t V550 = 0x5500000;
-
+// new
+static constexpr uint32_t V600 = 0x6000000;
+static constexpr uint32_t V602 = 0x6020000;
+static constexpr uint32_t V650 = 0x6500000;
+static constexpr uint32_t V700 = 0x7000000;
+static constexpr uint32_t V701 = 0x7010000;
+static constexpr uint32_t V720 = 0x7200000;
+static constexpr uint32_t V740 = 0x7400000;
+static constexpr uint32_t V760 = 0x7600000;
+static constexpr uint32_t V761 = 0x7610000;
 
 uint32_t getSystemSwVersion();
 
