@@ -274,9 +274,10 @@ bool patchShellCore() {
       break;
     }
 
-    plugin_log("offset: 0x%llx", offset);
+    plugin_log("offset: 0x%llx | ver 0x%X", offset, getSystemSwVersion() & VERSION_MASK);
     if (offset != -1) {
       write_bytes(g_ShellCorePid, (shellcore_base + offset), "9090909090");
+      plugin_log("setting status to true");
       status = true;
     }
   }
