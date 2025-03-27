@@ -10,7 +10,7 @@ set(basename "Error_Disabling")
 project(${basename} C CXX)
 
 set(PLUGIN_TITLE_ID "EORR37000")
-set(PLUGIN_VERSION "1.03")
+set(PLUGIN_VERSION "1.04")
 
 # Language Standard Defaults
 set(CMAKE_C_STANDARD 17)
