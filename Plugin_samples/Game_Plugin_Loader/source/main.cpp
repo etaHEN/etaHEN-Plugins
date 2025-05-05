@@ -30,7 +30,7 @@ static void SuspendApp(pid_t pid)
 	sceKernelSuspendProcess(pid);
 }
 
-#define HOOKED_GAME_TID "PPSA04264"
+#define HOOKED_GAME_TID "PPSA16910"
 
 static void ResumeApp(pid_t pid)
 {
@@ -71,6 +71,10 @@ int main()
 	}
 
 	SuspendApp(appid);
+
+	while(1){
+		sleep(5);
+	}
 
 	int bappid = 0, pid = 0;
 	for (size_t j = 0; j <= 9999; j++) {
