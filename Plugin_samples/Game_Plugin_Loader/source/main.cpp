@@ -66,9 +66,11 @@ int main()
 	int appid = 0;
 	while(!Is_Game_Running(appid, HOOKED_GAME_TID))
 	{
-		//printf_notification("Waiting for the Game to start...");
-		usleep(200);
+	      printf_notification("Waiting for the Game to start...");
 	}
+
+
+	printf_notification("suspending game.");
 
 	SuspendApp(appid);
 
