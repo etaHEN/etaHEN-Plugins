@@ -5,7 +5,6 @@
 #include "game_patch_memory.hpp"
 #include "game_patch_xml.hpp"
 #include "notify.hpp"
-#include "dbg/dbg.hpp"
 void cheat_log(const char* fmt, ...);
 // Include the `game_patch_fliprate_list.xml` as a symbol
 __asm__(
@@ -15,10 +14,9 @@ __asm__(
 	".incbin \"" "data/game_patch_fliprate_list.xml" "\"\n");
 
 extern "C" const char DefaultXml_FliprateList[];
-uint32_t  g_module_size = 0;
+
 extern "C"
 {
-        int sceKernelMprotect(void *addr, size_t len, int prot);
 	int32_t sceKernelOpen(const char*, int32_t, int32_t);
 	off_t sceKernelLseek(int32_t, off_t, int);
 	int32_t sceKernelClose(int32_t);
@@ -30,66 +28,6 @@ extern "C"
 	void free(void*);
 }
 #define ORBIS_KERNEL_ERROR_ENOENT 0x80020002
-
-
-// valid hex look up table.
-const uint8_t hex_lut[] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00};
-
-uint8_t *hexstrtochar2(const char *hexstr, int64_t *size)
-{
-
-    uint32_t str_len = strlen(hexstr);
-    int64_t data_len = ((str_len + 1) / 2) * sizeof(uint8_t);
-    *size = (str_len) * sizeof(uint8_t);
-    if (!*size)
-    {
-        return nullptr;
-    }
-    uint8_t *data = (uint8_t *)malloc(*size);
-    if (!data)
-    {
-        return nullptr;
-    }
-    uint32_t j = 0; // hexstr position
-    uint32_t i = 0; // data position
-
-    if (str_len % 2 == 1)
-    {
-        data[i] = (uint8_t)(hex_lut[0] << 4) | hex_lut[(uint8_t)hexstr[j]];
-        j = ++i;
-    }
-
-    for (; j < str_len; j += 2, i++)
-    {
-        data[i] = (uint8_t)(hex_lut[(uint8_t)hexstr[j]] << 4) |
-                  hex_lut[(uint8_t)hexstr[j + 1]];
-    }
-
-    *size = data_len;
-    return data;
-}
 
 int32_t Read_File(const char* input_file, char** file_data, size_t* filesize, uint32_t extra)
 {
@@ -311,73 +249,8 @@ uint64_t patch_hash_calc(const char* title, const char* name, const char* app_ve
 
 //char g_game_elf[] = "eboot.bin";
 //char g_game_ver[] = "01.00";
-uint64_t g_module_base = 0;
+//uint64_t g_module_base = 0;
 #define NO_ASLR_ADDR_PS4 0x00400000
-
-#define SYS_dynlib_get_info_ex 608
-#define SYS_dl_get_list 0x217
-#define SYS_dl_get_info_2 0x2cd
-#define MODULE_INFO_NAME_LENGTH 128
-#define MODULE_INFO_SANDBOXED_PATH_LENGTH 1024
-#define MODULE_INFO_MAX_SECTIONS 4
-#define FINGERPRINT_LENGTH 20
-
-typedef struct {
-	uint64_t vaddr;
-	uint64_t size;
-    uint32_t prot;
-} module_section_t;
-
-typedef struct {
-	char filename[MODULE_INFO_NAME_LENGTH];
-	uint64_t handle;
-	uint8_t unknown0[32]; // NOLINT(readability-magic-numbers)
-	uint64_t init; // init
-	uint64_t fini; // fini
-	uint64_t eh_frame_hdr; // eh_frame_hdr
-	uint64_t eh_frame_hdr_sz; // eh_frame_hdr_sz
-	uint64_t eh_frame; // eh_frame
-	uint64_t eh_frame_sz; // eh_frame_sz
-	module_section_t sections[MODULE_INFO_MAX_SECTIONS];
-	uint8_t unknown7[1176]; // NOLINT(readability-magic-numbers)
-	uint8_t fingerprint[FINGERPRINT_LENGTH];
-	uint32_t unknown8;
-	char libname[MODULE_INFO_NAME_LENGTH];
-	uint32_t unknown9;
-	char sandboxed_path[MODULE_INFO_SANDBOXED_PATH_LENGTH];
-	uint64_t sdk_version;
-} module_info_t;
-
-module_info_t* get_module_info(pid_t pid, const char* module_name)
-{
-    size_t num_handles = 0;
-    syscall(SYS_dl_get_list, pid, NULL, 0, &num_handles);
-    cheat_log("numb of handles %d", num_handles);
-    if (num_handles)
-    {
-        uintptr_t* handles = (uintptr_t*) calloc(num_handles, sizeof(uintptr_t));
-        syscall(SYS_dl_get_list, pid, handles, num_handles, &num_handles);
-
-        module_info_t* mod_info = (module_info_t*) malloc(sizeof(module_info_t));
-        
-        for (int i = 0; i < num_handles; ++i)
-        {
-	    cheat_log("I handles %i handles %p, fname%s", i, handles[i], mod_info->filename);
-            bzero(mod_info, sizeof(module_info_t));
-            syscall(SYS_dl_get_info_2, pid, 1, handles[i], mod_info);
-            if (!strcmp(mod_info->filename, module_name))
-            {
-                return mod_info;
-            }
-        }
-        
-        free(handles);
-        free(mod_info);
-    }
-
-    return NULL;
-}
-
 
 char* unescape(const char* s)
 {
@@ -495,8 +368,8 @@ void patch_data1(int pid, const char* patch_type_str, uint64_t addr, const char*
 		write_bytes(pid, addr, &real_value, sizeof(real_value));
 		break;
 	}
-	case djb2_hash("byteint64_t"):
-	case djb2_hash("mask_byteint64_t"):
+	case djb2_hash("bytes64"):
+	case djb2_hash("mask_bytes64"):
 	{
 		int64_t real_value = 0;
 		if (hex_prefix(value))
@@ -610,8 +483,8 @@ void patch_data1(int pid, const char* patch_type_str, uint64_t addr, const char*
 			ShowNotifyOnce = true;
 		}
 		cheat_log("patchCall not supported yet");
-		
-		uint8_t call_bytes[5] = { 0 };
+		/*
+		u8 call_bytes[5] = { 0 };
 		memcpy(call_bytes, (void*)addr, sizeof(call_bytes));
 		if (call_bytes[0] == 0xe8 || call_bytes[0] == 0xe9)
 		{
@@ -620,19 +493,17 @@ void patch_data1(int pid, const char* patch_type_str, uint64_t addr, const char*
 			{
 				uintptr_t branched_call = addr + branch_target + sizeof(call_bytes);
 				cheat_log("0x%016lx: 0x%08x -> 0x%016lx\n", addr, branch_target, branched_call);
-				int64_t bytearray_size = 0;
-				uint8_t* bytearray = hexstrtochar2(value, &bytearray_size);
+				s64 bytearray_size = 0;
+				u8* bytearray = hexstrtochar2(value, &bytearray_size);
 				if (!bytearray)
 				{
 					break;
 				}
-				sceKernelMprotect((void*)branched_call, bytearray_size, 0x07);
-				write_bytes(pid, branched_call, bytearray, bytearray_size);
-				//sys_proc_rw(branched_call, bytearray, bytearray_size);
+				sys_proc_rw(branched_call, bytearray, bytearray_size);
 				free(bytearray);
 			}
 		}
-		
+		*/
 		break;
 	}
 	default:
@@ -647,8 +518,7 @@ void patch_data1(int pid, const char* patch_type_str, uint64_t addr, const char*
 	}
 	}
 }
-#define CHUNK_SIZE (16 * 1024 * 1024)
-#define PATTERN_OVERLAP 1024  // Max expected pattern size
+
 int Xml_ParseGamePatch(GamePatchInfo* info)
 {
 	uint32_t patch_lines = 0;
@@ -782,117 +652,27 @@ int Xml_ParseGamePatch(GamePatchInfo* info)
 					}
 					if (use_mask)
 					{
-g_module_base = info->image_base;
-    g_module_size = info->image_size;
-    
-    cheat_log("g_module_base vaddr 0x%p, size: 0x%lx", g_module_base, g_module_size);
-    
-    // Allocate buffer for chunks (with overlap space)
-    char *chunk_buffer = (char *)malloc(CHUNK_SIZE + PATTERN_OVERLAP);
-    cheat_log("chunk_buffer: 0x%p", chunk_buffer);
-    if (!chunk_buffer) {
-        cheat_log("chunk_buffer is nullptr");
-        return false;
-    }
-    
-    uint64_t jump_addr = 0;
-    uint32_t jump_size = 0;
-    const char* gameOffset = nullptr;
-    const char* gameJumpTarget = nullptr;
-    const char* gameJumpSize = nullptr;
-    
-    // Get pattern strings
-    if (startsWith(gameType, "mask_jump32")) {
-        gameJumpTarget = GetXMLAttr(Line_node, "Target");
-        gameJumpSize = GetXMLAttr(Line_node, "Size");
-        jump_size = strtoul(gameJumpSize, NULL, 10);
-    }
-    gameOffset = GetXMLAttr(Line_node, "Offset");
-    cheat_log("gameAddr %s", gameAddr);
-    
-    bool found_main_pattern = false;
-    bool found_jump_pattern = false;
-    uint64_t overlap_size = 0;
-    
-    // Scan through module in chunks
-    for (uint64_t offset = 0; offset < 0x1000000 && (!found_main_pattern || !found_jump_pattern); 
-         offset += CHUNK_SIZE) {
-        
-        uint64_t current_chunk_size = (offset + CHUNK_SIZE > g_module_size) ? 
-                                      (g_module_size - offset) : CHUNK_SIZE;
-        uint64_t total_read_size = current_chunk_size + overlap_size;
-        
-        // Move overlap data to beginning of buffer
-        if (overlap_size > 0 && offset > 0) {
-            memmove(chunk_buffer, chunk_buffer + CHUNK_SIZE, overlap_size);
-        }
-        
-        // Read new chunk data after the overlap
-        if (!dbg::read(info->image_pid, 
-                     (uint64_t)(g_module_base + offset),
-                     chunk_buffer + overlap_size, 
-                     current_chunk_size)) {
-            cheat_log("Failed to read chunk at offset 0x%lx", offset);
-            free(chunk_buffer);
-            return false;
-        }
-        
-        cheat_log("Processing chunk: offset 0x%lx, size 0x%lx", offset, current_chunk_size);
-        
-        // Scan for main pattern if not found yet
-        if (!found_main_pattern && gameAddr) {
-            void* local_match = PatternScan((uint64_t)chunk_buffer, total_read_size, gameAddr);
-            if (local_match) {
-                // Calculate real address: base + chunk_offset + local_offset - overlap
-                addr_real = (uint64_t)g_module_base + 
-                           (offset - overlap_size) + 
-                           ((char*)local_match - chunk_buffer);
-                cheat_log("Main pattern found at remote address: 0x%lx", addr_real);
-                found_main_pattern = true;
-            }
-        }
-        
-        // Scan for jump pattern if not found yet
-        if (!found_jump_pattern && gameJumpTarget) {
-            void* local_match = PatternScan((uint64_t)chunk_buffer, total_read_size, gameJumpTarget);
-            if (local_match) {
-                // Calculate real address: base + chunk_offset + local_offset - overlap
-                jump_addr = (uint64_t)g_module_base + 
-                           (offset - overlap_size) + 
-                           ((char*)local_match - chunk_buffer);
-                cheat_log("Jump pattern found at remote address: 0x%lx", addr_real);
-                found_jump_pattern = true;
-            }
-        }
-        
-        // Setup overlap for next iteration (except on last chunk)
-        if (offset + CHUNK_SIZE < g_module_size) {
-            overlap_size = (current_chunk_size > PATTERN_OVERLAP) ? 
-                          PATTERN_OVERLAP : current_chunk_size;
-        } else {
-            overlap_size = 0;
-        }
-    }
-    
-    // Clean up
-    free((void*)chunk_buffer);
-    
-    // Check results
-    if (!found_main_pattern || !addr_real) {
-        cheat_log("Masked Address: %s not found\n", gameAddr);
-        return 1;
-    }
-    
-    if (gameJumpTarget && (!found_jump_pattern || !jump_addr)) {
-        cheat_log("Jump Target: %s not found\n", gameJumpTarget);
-        return 1;
-    }
-    
-    if (jump_addr) {
-        cheat_log("Target: 0x%lx jump size %u\n", jump_addr, jump_size);
-    }
+						/*
+						uint64_t jump_addr = 0;
+						uint32_t jump_size = 0;
+						const char* gameOffset = nullptr;
+						if (startsWith(gameType, "mask_jump32"))
+						{
+							const char* gameJumpTarget = GetXMLAttr(Line_node, "Target");
+							const char* gameJumpSize = GetXMLAttr(Line_node, "Size");
+							jump_addr = addr_real = (uint64_t)PatternScan(g_module_base, g_module_size, gameJumpTarget);
+							jump_size = strtoul(gameJumpSize, NULL, 10);
+							cheat_log("Target: 0x%lx jump size %u\n", jump_addr, jump_size);
+						}
+						gameOffset = GetXMLAttr(Line_node, "Offset");
+						addr_real = (uint64_t)PatternScan(g_module_base, g_module_size, gameAddr);
+						if (!addr_real)
+						{
+							cheat_log("Masked Address: %s not found\n", gameAddr);
+							continue;
+						}
 						cheat_log("Masked Address: 0x%lx\n", addr_real);
-						cheat_log("Address: %s\n", gameOffset);
+						cheat_log("Offset: %s\n", gameOffset);
 						uint32_t real_offset = 0;
 						if (gameOffset[0] != '0')
 						{
@@ -917,6 +697,7 @@ g_module_base = info->image_base;
 						{
 							cheat_log("Mask does not reqiure offsetting.\n");
 						}
+						*/
 					}
 					cheat_log("Type: \"%s\"\n", gameType);
 					if (gameAddr && !use_mask)
