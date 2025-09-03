@@ -48,7 +48,7 @@ extern "C" int sceSystemServiceGetAppId(const char *);
 extern "C" int sceSystemServiceLoadExec(const char *path, void* args);
 void sig_handler(int signo)
 {
-	printf_notification("Cheats plugin has crashed with signal %d", signo);
+	printf_notification("the Itemzflow XML Patches plugin has crashed with signal %d", signo);
 	printBacktraceForCrash();
     exit(-1);
 }
