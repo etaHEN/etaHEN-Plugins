@@ -351,7 +351,7 @@ for (auto p: dbg::getProcesses()) {
           cheat_log("sceKernelGetProcessName failed for %s (%d)", tid.c_str(), app_pid);
           continue;
         }
-        cheat_log("Found %s (%d)", proc_name, app_pid);
+       // cheat_log("Found %s (%d)", proc_name, app_pid);
         
         break;
       }
