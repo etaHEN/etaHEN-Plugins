@@ -20,6 +20,7 @@
 
 #include <fcntl.h>
 #include <ps5/klog.h>
+#include <string>
 
 void write_log(const char *text) {
   klog_printf("%s", text);
@@ -322,7 +323,7 @@ void *GamePatch_Thread(void *unused) {
       continue;
     }
 
-     if (tid.rfind("ITEM") != std::string::npos){
+     if (stdd::string(tid).rfind("ITEM") != std::string::npos){
         continue;
      }
 
