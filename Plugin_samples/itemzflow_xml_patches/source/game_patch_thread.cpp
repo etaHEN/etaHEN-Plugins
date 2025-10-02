@@ -323,7 +323,7 @@ void *GamePatch_Thread(void *unused) {
       continue;
     }
 
-     if (std::string(tid).rfind("ITEM") != std::string::npos){
+     if (std::string(tid.c_str()).rfind("ITEM") != std::string::npos){
         continue;
      }
 
