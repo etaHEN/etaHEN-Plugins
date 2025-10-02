@@ -19,15 +19,16 @@
 #include "game_patch_xml.hpp"
 
 #include <fcntl.h>
+#include <ps5/klog.h>
 
 void write_log(const char *text) {
-  int text_len = printf("%s", text);
+  klog_printf("%s", text);
   int fd = open("/data/etaHEN/cheat_plugin.log", O_WRONLY | O_CREAT | O_APPEND,
                 0777);
   if (fd < 0) {
     return;
   }
-  write(fd, text, text_len);
+  write(fd, text, strlen(text));
   close(fd);
 }
 
