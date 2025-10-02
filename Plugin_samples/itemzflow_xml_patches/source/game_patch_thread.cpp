@@ -322,6 +322,10 @@ void *GamePatch_Thread(void *unused) {
       continue;
     }
 
+     if (tid.rfind("ITEM") != std::string::npos){
+        continue;
+     }
+
     if (g_foundApp) {
       usleep(1000);
       continue;
