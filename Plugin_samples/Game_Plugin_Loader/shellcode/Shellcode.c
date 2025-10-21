@@ -109,10 +109,13 @@ typedef struct {
 
 
 static int __attribute__((used)) scePadReadState_Hook(int handle, OrbisPadData *pData, GameExtraStuff *restrict stuff){
-
+int (*Hello)() = 0;
     volatile unsigned long long Hello_Game[2];
     Hello_Game[0] = 0x7266206f6c6c6548;
     Hello_Game[1] = 0x0000364f42206d6f;
+
+      volatile unsigned long long Hello_Game_sym[2];
+    Hello_Game_sym[0] = 0x7266206f6c6c6548;
 
     int ret = stuff->scePadReadState(handle, pData);
     int is_connected = (ret == 0 && handle > 0 && pData->connected);
@@ -120,6 +123,8 @@ static int __attribute__((used)) scePadReadState_Hook(int handle, OrbisPadData *
     if (is_connected && !stuff->loaded)
     {
         int res = stuff->sceKernelLoadStartModule(stuff->prx_path, 0, 0, 0, 0, 0);
+         stuff->sceKernelDlsym(modu, (const char *)Hello_Game_sym, (void **)&Hello);
+        Hello();
         (void)res;
         stuff->sceKernelDebugOutText(0, (const char*)Hello_Game);
         stuff->loaded = 1;
