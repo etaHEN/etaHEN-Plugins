@@ -30,7 +30,7 @@ static void SuspendApp(pid_t pid)
 	sceKernelSuspendProcess(pid);
 }
 
-#define HOOKED_GAME_TID "PPSA04264"
+#define HOOKED_GAME_TID "CUSA02290"
 
 static void ResumeApp(pid_t pid)
 {
