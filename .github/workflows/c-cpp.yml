@@ -27,8 +27,8 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const release = await github.rest.repos.getLatestRelease({
-            owner: 'LightningMods',
-            repo: 'etaHEN-SDK'
+            owner: 'ps5-payload-dev',
+            repo: 'sdk'
           });
           core.setOutput('download_url', release.data.assets.find(asset => asset.name.endsWith('.zip')).browser_download_url);
 
@@ -43,13 +43,13 @@ jobs:
     - name: Checkout Payload
       uses: actions/checkout@v3
 
-    - name: Build etaHEN-SDK-Binaries
+    - name: Build etaHEN-Plugins-Binaries
       run: bash ./build.sh
 
     - name: Upload artifacts
       uses: actions/upload-artifact@main
       with:
-        name: etaHEN-SDK-Binaries
+        name: etaHEN-Plugins-Binaries
         path:  |
               ELF_samples/bin/*.elf
               Plugin_samples/bin/*.elf
